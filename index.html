@@ -217,17 +217,23 @@ hr.div{border:none;border-top:1px solid #e8e8e8;margin:6px 0}
 </div>
 
 <script>
-// ══ Default preset (botanical) ════════════════════════════════════════════════
-const DEFAULT_PRESET = {
-  td:'18', ts:'55', tm:'130', th:'210', ref:'0', bgc:'#000000',
-  layers:[
-    {id:'d',theme:'bloom',  c1:'#e18ea3',c2:'#cf2f1e',mode:'solid-brightness',ps:'16',dn:'80',jt:'18',sw:'0',sc:'#000000',sg:false,en:false},
-    {id:'s',theme:'forest', c1:'#a0b80a',c2:'#4e5d02',mode:'solid-brightness',ps:'16',dn:'80',jt:'18',sw:'0',sc:'#000000',sg:false,en:true},
-    {id:'m',theme:'surface',c1:'#645139',c2:'#5ca6cd',mode:'gradient-cell',   ps:'24',dn:'88',jt:'20',sw:'0',sc:'#000000',sg:false,en:true},
-    {id:'h',theme:'bloom',  c1:'#e18ea3',c2:'#cf2f1e',mode:'random-gradient', ps:'36',dn:'90',jt:'22',sw:'0',sc:'#000000',sg:false,en:true},
-    {id:'b',theme:'sunset', c1:'#e44d43',c2:'#f9cf80',mode:'gradient-cell',   ps:'28',dn:'95',jt:'14',sw:'0',sc:'#000000',sg:false,en:true},
-  ]
-};
+// ══ Built-in presets (always available, not from localStorage) ═════════════════
+const BUILT_IN_PRESETS = [
+  {
+    name: 'Botanical',
+    state: {
+      td:'18', ts:'55', tm:'130', th:'210', ref:'0', bgc:'#000000',
+      layers:[
+        {id:'d',theme:'bloom',  c1:'#e18ea3',c2:'#cf2f1e',mode:'solid-brightness',ps:'16',dn:'80',jt:'18',sw:'0',sc:'#000000',sg:false,en:false},
+        {id:'s',theme:'forest', c1:'#a0b80a',c2:'#4e5d02',mode:'solid-brightness',ps:'16',dn:'80',jt:'18',sw:'0',sc:'#000000',sg:false,en:true},
+        {id:'m',theme:'surface',c1:'#645139',c2:'#5ca6cd',mode:'gradient-cell',   ps:'24',dn:'88',jt:'20',sw:'0',sc:'#000000',sg:false,en:true},
+        {id:'h',theme:'bloom',  c1:'#e18ea3',c2:'#cf2f1e',mode:'random-gradient', ps:'36',dn:'90',jt:'22',sw:'0',sc:'#000000',sg:false,en:true},
+        {id:'b',theme:'sunset', c1:'#e44d43',c2:'#f9cf80',mode:'gradient-cell',   ps:'28',dn:'95',jt:'14',sw:'0',sc:'#000000',sg:false,en:true},
+      ]
+    }
+  },
+];
+const DEFAULT_PRESET = BUILT_IN_PRESETS[0].state;
 
 // ══ Themes ════════════════════════════════════════════════════════════════════
 const THEMES = {
@@ -684,14 +690,21 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 function loadPreset() {
   const sel=document.getElementById('preset-sel');
-  const idx=+sel.value; if(isNaN(idx)||sel.value==='') return;
-  const p=getPresets();
-  if(p[idx]) applyState(p[idx].state);
+  const val=sel.value; if(!val) return;
+  if (val.startsWith('b:')) {
+    const idx=+val.slice(2);
+    if (BUILT_IN_PRESETS[idx]) applyState(BUILT_IN_PRESETS[idx].state);
+  } else {
+    const idx=+val.slice(2);
+    const p=getPresets();
+    if(p[idx]) applyState(p[idx].state);
+  }
 }
 
 function deletePreset() {
   const sel=document.getElementById('preset-sel');
-  const idx=+sel.value; if(isNaN(idx)||sel.value==='') return;
+  const val=sel.value; if(!val||val.startsWith('b:')) return; // can't delete built-ins
+  const idx=+val.slice(2);
   const p=getPresets(); if(!p[idx]) return;
   const info=document.getElementById('preset-info');
   info.innerHTML=`Delete "<b>${p[idx].name}</b>"? <button class="btn sm del" onclick="confirmDelete(${idx})" style="margin-left:4px">Yes, delete</button>`;
@@ -701,15 +714,18 @@ function confirmDelete(idx) {
   document.getElementById('preset-info').textContent='';
 }
 
-function previewPreset() {} // could show info; currently just selection
-
 function refreshPresetList() {
-  const p=getPresets();
+  const userPresets=getPresets();
   const sel=document.getElementById('preset-sel');
   const cur=sel.value;
-  sel.innerHTML='<option value="">— select preset —</option>'+
-    p.map((x,i)=>`<option value="${i}">${x.name} <span style="color:#aaa">${x.saved||''}</span></option>`).join('');
-  sel.value=cur;
+  const builtInOpts=BUILT_IN_PRESETS.map((x,i)=>`<option value="b:${i}">${x.name}</option>`).join('');
+  const userOpts=userPresets.map((x,i)=>`<option value="u:${i}">${x.name}  ${x.saved||''}</option>`).join('');
+  sel.innerHTML=
+    '<option value="">— select preset —</option>'+
+    `<optgroup label="Built-in">${builtInOpts}</optgroup>`+
+    (userPresets.length ? `<optgroup label="Saved">${userOpts}</optgroup>` : '');
+  // Restore selection if still valid
+  if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
 }
 
 // ══ Text overlay ══════════════════════════════════════════════════════════════

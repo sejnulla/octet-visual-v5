@@ -563,7 +563,7 @@ async function loadExampleImg(stateOverride) {
     };
     img.src = url;
     switchInput('img');
-  } catch(e) { alert('Example media not available — try uploading your own image.'); }
+  } catch(e) { /* example media not available on this host — silent */ }
 }
 
 async function loadExampleVid() {
@@ -574,7 +574,7 @@ async function loadExampleVid() {
     v.src = './media/loop.mp4';
     v.style.display = 'block';
     v.addEventListener('loadeddata', () => { src = v; offC = null; applyState(DEFAULT_PRESET); render(); }, {once:true});
-  } catch(e) { alert('Example media not available — try uploading your own video.'); }
+  } catch(e) { /* example media not available on this host — silent */ }
 }
 
 function onLiveToggle() { document.getElementById('live').checked ? startLive() : stopLive(); }
@@ -696,16 +696,22 @@ function loadPreset() {
     const idx=+val.slice(2);
     const preset=BUILT_IN_PRESETS[idx]; if(!preset) return;
     if (!src && preset.exampleImg) {
-      // No image loaded — load the example media and apply state together
       loadExampleImg(preset.state);
     } else {
       applyState(preset.state);
     }
+    showPresetInfo('✓ Loaded "'+preset.name+'"');
   } else {
     const idx=+val.slice(2);
     const p=getPresets();
-    if(p[idx]) applyState(p[idx].state);
+    if(!p[idx]) return;
+    applyState(p[idx].state);
+    showPresetInfo('✓ Loaded "'+p[idx].name+'"');
   }
+}
+function showPresetInfo(msg) {
+  const info=document.getElementById('preset-info');
+  info.textContent=msg; setTimeout(()=>info.textContent='',2500);
 }
 
 function deletePreset() {

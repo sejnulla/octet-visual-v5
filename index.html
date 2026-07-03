@@ -13,6 +13,7 @@
 
 :root {
   --bg:     #f5f1ea;
+  --panel:  #efece6;
   --ink:    #0d0d0c;
   --dim:    #5b574e;
   --brd:    rgba(13,13,12,0.08);
@@ -32,19 +33,33 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Header ───────────────────────────────────────────────────── */
+/* ── Pixelation canvas — fixed full-screen behind everything ──── */
+#cv {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+}
+
+/* ── Header — full-width sticky glass over the globe ──────────── */
 #hdr {
   position: sticky;
   top: 0;
   z-index: 200;
   height: var(--hdr);
-  background: var(--bg);
+  background: rgba(245, 241, 234, 0.78);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
   border-bottom: 1px solid var(--brd);
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 0 40px;
 }
+#hdr .logo { position: absolute; left: 40px; }
+#hdr nav { margin: 0 auto; }
 
 .logo {
   font-family: var(--jet);
@@ -67,44 +82,46 @@ nav a {
 }
 nav a:hover { color: var(--ink); }
 
-/* ── Two-column 50/50 ─────────────────────────────────────────── */
+/* ── Main column — content floats over the fixed globe ────────── */
 #main {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: calc(100vh - var(--hdr));
-  align-items: start;
-}
-
-/* ── Content column ───────────────────────────────────────────── */
-#content {
-  border-right: 1px solid var(--brd);
-  padding: 0 0 160px;
-}
-
-/* ── Canvas dock — sticky right ───────────────────────────────── */
-#canvas-dock {
-  position: sticky;
-  top: var(--hdr);
-  height: calc(100vh - var(--hdr));
+  position: relative;
+  z-index: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 40px;
 }
 
-/* Canvas: responsive fill, 4:5 ratio, renders at 440×550 internally */
-#cv {
-  display: block;
-  width: min(520px, 100%);
-  aspect-ratio: 4 / 5;
-  background: #111;
+/* ── Hero — transparent, text sits directly over the globe ────── */
+#section-hero {
+  width: 100%;
+  max-width: 860px;
+  min-height: calc(74vh - var(--hdr));
+  padding: clamp(48px, 10vh, 120px) 40px 44px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+/* Hero text container — translucent cream panel; text stays fully opaque */
+#section-hero .hero-inner {
+  background: rgba(245, 241, 234, 0.85);
+  padding: 44px 48px;
+}
+#section-hero .sec-label { justify-content: center; }
+#section-hero .hero-body { margin-left: auto; margin-right: auto; }
+
+/* ── Content panel — near-white sheet that scrolls over globe ── */
+#panel-sheet {
+  position: relative;
+  z-index: 1;
+  width: min(1100px, 100% - 48px);
+  margin: 0 auto 140px;
+  background: #f7f5f1;
+  box-shadow: 0 1px 40px rgba(13,13,12,0.06);
 }
 
-/* ── Section padding ──────────────────────────────────────────── */
-.section {
-  padding: 80px 56px;
-  border-bottom: 1px solid var(--brd);
-}
+/* ── Section ──────────────────────────────────────────────────── */
+.section { padding: 80px 64px; border-bottom: 1px solid var(--brd); }
 .section:last-child { border-bottom: none; }
 
 /* ── Section label row ────────────────────────────────────────── */
@@ -139,14 +156,13 @@ nav a:hover { color: var(--ink); }
   color: var(--ink);
   margin-bottom: 40px;
 }
-
 .hero-body {
   font-family: var(--sans);
   font-weight: 300;
   font-size: 13.5px;
   line-height: 1.8;
   color: var(--dim);
-  max-width: 480px;
+  max-width: 620px;
 }
 
 /* ── Workload intro ───────────────────────────────────────────── */
@@ -157,7 +173,6 @@ nav a:hover { color: var(--ink); }
   color: var(--dim);
   margin-right: 6px;
 }
-
 .wl-heading {
   font-family: var(--jet);
   font-weight: 300;
@@ -167,7 +182,6 @@ nav a:hover { color: var(--ink); }
   color: var(--ink);
   margin-bottom: 28px;
 }
-
 .wl-intro {
   font-family: var(--sans);
   font-weight: 300;
@@ -177,15 +191,18 @@ nav a:hover { color: var(--ink); }
   margin-bottom: 48px;
   padding-bottom: 48px;
   border-bottom: 1px solid var(--brd);
+  max-width: 640px;
 }
 
-/* ── Sub-section ──────────────────────────────────────────────── */
+/* ── Sub-section — body left, pills right ─────────────────────── */
 .sub {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 48px;
   padding: 40px 0;
   border-bottom: 1px solid var(--brd);
 }
 .sub:last-child { border-bottom: none; }
-
 .sub-num {
   font-family: var(--mono);
   font-weight: 300;
@@ -194,15 +211,12 @@ nav a:hover { color: var(--ink); }
   color: var(--dim);
   margin-bottom: 18px;
 }
-
-/* Gradient accent bar (matches Figma 80×3 gradient element) */
 .sub-accent {
   width: 80px;
   height: 3px;
   background: linear-gradient(90deg, rgba(13,13,12,0.35) 0%, transparent 100%);
   margin-bottom: 14px;
 }
-
 .sub-title {
   font-family: var(--jet);
   font-weight: 400;
@@ -212,21 +226,17 @@ nav a:hover { color: var(--ink); }
   color: var(--ink);
   margin-bottom: 18px;
 }
-
 .sub-body {
   font-family: var(--sans);
   font-weight: 300;
   font-size: 12.5px;
   line-height: 1.8;
   color: var(--dim);
-  margin-bottom: 24px;
 }
 
 /* ── Predicate / regime pills ─────────────────────────────────── */
-.pills { display: flex; flex-direction: column; gap: 7px; }
-
-.pill-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-
+.pills { display: flex; flex-direction: column; gap: 14px; padding-top: 30px; }
+.pill-row { display: flex; flex-direction: column; gap: 6px; }
 .pill-label {
   font-family: var(--mono);
   font-weight: 300;
@@ -234,10 +244,7 @@ nav a:hover { color: var(--ink); }
   letter-spacing: 0.1em;
   color: var(--dim);
   text-transform: uppercase;
-  flex-shrink: 0;
-  min-width: 54px;
 }
-
 .pill-value {
   font-family: var(--mono);
   font-weight: 400;
@@ -247,13 +254,12 @@ nav a:hover { color: var(--ink); }
   background: rgba(13,13,12,0.04);
   border: 1px solid var(--brd);
   border-radius: 2px;
-  padding: 3px 7px;
+  padding: 6px 8px;
   line-height: 1.5;
 }
 
 /* ── Closing ──────────────────────────────────────────────────── */
 #section-closing { padding-top: 96px; padding-bottom: 96px; }
-
 .closing-meta {
   font-family: var(--mono);
   font-weight: 300;
@@ -263,7 +269,6 @@ nav a:hover { color: var(--ink); }
   text-transform: uppercase;
   margin-bottom: 48px;
 }
-
 .closing-h1 {
   font-family: var(--jet);
   font-weight: 300;
@@ -273,17 +278,15 @@ nav a:hover { color: var(--ink); }
   color: var(--ink);
   margin-bottom: 36px;
 }
-
 .closing-body {
   font-family: var(--sans);
   font-weight: 300;
   font-size: 13px;
   line-height: 1.85;
   color: var(--dim);
-  max-width: 420px;
+  max-width: 460px;
   margin-bottom: 56px;
 }
-
 .closing-h2 {
   font-family: var(--jet);
   font-weight: 300;
@@ -295,34 +298,24 @@ nav a:hover { color: var(--ink); }
 
 /* ── Footer ───────────────────────────────────────────────────── */
 footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  padding: 0 40px 60px;
+}
+#footer-inner {
+  width: min(1100px, 100% - 48px);
+  background: #f7f5f1;
   border-top: 1px solid var(--brd);
-  padding: 36px 40px;
+  padding: 36px 64px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
 }
-.footer-brand {
-  font-family: var(--jet);
-  font-weight: 400;
-  font-size: 13px;
-  color: var(--ink);
-  margin-bottom: 6px;
-}
-.footer-address {
-  font-family: var(--mono);
-  font-weight: 300;
-  font-size: 9.5px;
-  color: var(--dim);
-  line-height: 1.7;
-}
-.footer-right {
-  font-family: var(--mono);
-  font-weight: 300;
-  font-size: 9.5px;
-  color: var(--dim);
-  text-align: right;
-  line-height: 1.7;
-}
+.footer-brand { font-family: var(--jet); font-weight: 400; font-size: 13px; color: var(--ink); margin-bottom: 6px; }
+.footer-address { font-family: var(--mono); font-weight: 300; font-size: 9.5px; color: var(--dim); line-height: 1.7; }
+.footer-right { font-family: var(--mono); font-weight: 300; font-size: 9.5px; color: var(--dim); text-align: right; line-height: 1.7; }
 .footer-right a { color: var(--ink); text-decoration: none; }
 .footer-right a:hover { text-decoration: underline; }
 
@@ -352,7 +345,7 @@ footer {
   top: 0;
   left: 0;
   z-index: 390;
-  width: 296px;
+  width: 300px;
   height: 100vh;
   background: #f7f5f1;
   border-right: 1px solid var(--brd);
@@ -365,7 +358,6 @@ footer {
   padding-bottom: 60px;
 }
 #panel.hidden { transform: translateX(-100%); }
-
 #panel-head {
   position: sticky; top: 0; z-index: 5;
   background: #f7f5f1;
@@ -376,24 +368,7 @@ footer {
   font-weight: 400;
   display: flex; justify-content: space-between; align-items: center;
 }
-#panel-head button {
-  background: none; border: none; font-size: 15px; cursor: pointer; color: var(--dim);
-}
-
-#sec-tabs { display: flex; border-bottom: 1px solid var(--brd); background: #efece6; }
-.stab {
-  flex: 1; padding: 9px 4px; text-align: center; cursor: pointer;
-  font-family: var(--mono); font-size: 10px; letter-spacing: .04em; color: var(--dim);
-  border-bottom: 2px solid transparent; position: relative;
-}
-.stab.on { color: var(--ink); border-bottom-color: var(--ink); background: #f7f5f1; }
-.stab .live-dot {
-  display: none;
-  width: 5px; height: 5px; border-radius: 50%; background: #d4663b;
-  position: absolute; top: 6px; right: 8px;
-}
-.stab.live .live-dot { display: block; }
-
+#panel-head button { background: none; border: none; font-size: 15px; cursor: pointer; color: var(--dim); }
 #panel-body { padding: 0; }
 
 .pblock { border-bottom: 1px solid var(--brd); padding: 12px 14px; }
@@ -401,14 +376,11 @@ footer {
   font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase;
   color: var(--dim); margin-bottom: 10px;
 }
-
 .pfield { margin-bottom: 9px; }
-.pfield > label {
-  display: block; font-size: 10px; color: var(--dim); margin-bottom: 3px;
-}
+.pfield > label { display: block; font-size: 10px; color: var(--dim); margin-bottom: 3px; }
 .prow { display: flex; align-items: center; gap: 7px; }
 .prow input[type=range] { flex: 1; height: 15px; accent-color: #1c1c1a; min-width: 0; cursor: pointer; }
-.prow .val { font-family: var(--mono); font-size: 9.5px; color: #2a2a28; width: 30px; text-align: right; flex-shrink: 0; }
+.prow .val { font-family: var(--mono); font-size: 9.5px; color: #2a2a28; width: 34px; text-align: right; flex-shrink: 0; }
 input[type=color] { width: 26px; height: 20px; border: 1px solid var(--brd); border-radius: 3px; padding: 1px; cursor: pointer; flex-shrink: 0; background: none; }
 select { width: 100%; border: 1px solid var(--brd); border-radius: 4px; padding: 4px 6px; font-size: 11px; background: #fff; font-family: var(--sans); }
 
@@ -422,17 +394,11 @@ select { width: 100%; border: 1px solid var(--brd); border-radius: 4px; padding:
 .radio-row label:has(input:checked) { border-color: var(--ink); background: #efece6; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 4px; }
-.chip {
-  padding: 3px 8px; border-radius: 10px; border: 1px solid var(--brd); font-size: 9.5px;
-  cursor: pointer; background: #fff; color: var(--dim);
-}
+.chip { padding: 3px 8px; border-radius: 10px; border: 1px solid var(--brd); font-size: 9.5px; cursor: pointer; background: #fff; color: var(--dim); }
 .chip.on { background: #1c1c1a; color: #fff; border-color: #1c1c1a; }
 
 .layer { border: 1px solid var(--brd); border-radius: 6px; margin-bottom: 8px; background: #fbfaf7; }
-.layer-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  padding: 7px 10px; cursor: pointer; user-select: none;
-}
+.layer-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 10px; cursor: pointer; user-select: none; }
 .layer-head .lname { font-family: var(--mono); font-size: 10px; letter-spacing: .03em; }
 .layer-head.off .lname { opacity: .42; }
 .layer-body { padding: 4px 10px 10px; display: none; }
@@ -446,59 +412,36 @@ select { width: 100%; border: 1px solid var(--brd); border-radius: 4px; padding:
 .tog input:checked + .ts { background: #1c1c1a; }
 .tog input:checked + .ts:before { transform: translateX(13px); }
 
-.file-in { font-size: 10px; width: 100%; }
-.vid-status { font-size: 9.5px; color: var(--dim); margin-top: 5px; font-family: var(--mono); }
-
-.mini-btn {
-  font-size: 10px; padding: 4px 9px; border: 1px solid var(--brd); border-radius: 5px;
-  background: #fff; cursor: pointer; color: var(--ink); white-space: nowrap; flex-shrink: 0;
-}
+.mini-btn { font-size: 10px; padding: 4px 9px; border: 1px solid var(--brd); border-radius: 5px; background: #fff; cursor: pointer; color: var(--ink); white-space: nowrap; flex-shrink: 0; }
 .mini-btn:hover { background: #efece6; }
-#panel input[type=text] {
-  border: 1px solid var(--brd); border-radius: 4px; padding: 4px 7px; font-size: 11px;
-  flex: 1; min-width: 0; font-family: var(--sans);
-}
+#panel input[type=text] { border: 1px solid var(--brd); border-radius: 4px; padding: 4px 7px; font-size: 11px; flex: 1; min-width: 0; font-family: var(--sans); }
 #preset-msg { font-size: 9.5px; color: var(--dim); margin-top: 6px; min-height: 11px; font-family: var(--mono); }
 
 /* ── Mobile ──────────────────────────────────────────────────── */
 @media (max-width: 860px) {
-  #main {
-    grid-template-columns: 1fr;
-    display: flex;
-    flex-direction: column;
-  }
-  #canvas-dock {
-    order: -1;
-    position: sticky;
-    top: var(--hdr);
-    height: 40vh;
-    padding: 16px;
-    border-bottom: 1px solid var(--brd);
-    z-index: 100;
-    background: var(--bg);
-  }
-  #cv {
-    width: auto;
-    height: 100%;
-    aspect-ratio: unset;
-    max-height: calc(40vh - 32px);
-    max-width: calc((40vh - 32px) * 4 / 5);
-  }
-  #content { border-right: none; }
+  #hdr { padding: 0 20px; }
+  #hdr .logo { left: 20px; }
+  nav { display: none; }
+  #section-hero { min-height: calc(56vh - var(--hdr)); padding: 44px 20px 20px; }
+  #section-hero .hero-inner { padding: 28px 24px; }
   .section { padding: 56px 28px; }
+  .sub { grid-template-columns: 1fr; gap: 20px; }
+  .pills { padding-top: 4px; }
+  #panel-sheet { width: calc(100% - 24px); margin-bottom: 80px; }
+  #footer-inner { width: calc(100% - 24px); padding: 28px; flex-direction: column; gap: 16px; }
   .hero-heading { font-size: 32px; }
   .wl-heading   { font-size: 26px; }
   .closing-h1   { font-size: 30px; }
   .closing-h2   { font-size: 24px; }
-  nav { display: none; }
-  #hdr { padding: 0 24px; }
-  footer { padding: 28px 24px; flex-direction: column; gap: 16px; }
   .footer-right { text-align: left; }
   #panel { width: 100%; }
 }
 </style>
 </head>
 <body>
+
+<!-- ── Pixelation canvas — fullscreen fixed background ─────────── -->
+<canvas id="cv"></canvas>
 
 <!-- ── Settings panel toggle ──────────────────────────────────── -->
 <button id="panel-toggle" title="Visual controls">⚙</button>
@@ -508,11 +451,6 @@ select { width: 100%; border: 1px solid var(--brd); border-radius: 4px; padding:
   <div id="panel-head">
     <span>Visual Controls</span>
     <button id="panel-close" title="Hide">✕</button>
-  </div>
-  <div id="sec-tabs">
-    <div class="stab on" data-i="0">First<span class="live-dot"></span></div>
-    <div class="stab" data-i="1">Second<span class="live-dot"></span></div>
-    <div class="stab" data-i="2">Third<span class="live-dot"></span></div>
   </div>
   <div id="panel-body"></div>
 </div>
@@ -532,34 +470,34 @@ select { width: 100%; border: 1px solid var(--brd); border-radius: 4px; padding:
   </nav>
 </header>
 
-<!-- ── Two-column main ────────────────────────────────────────── -->
+<!-- ── Main ───────────────────────────────────────────────────── -->
 <div id="main">
 
-  <!-- Left: scrollable content -->
-  <div id="content">
-
-    <!-- ── First section · Hero ─────────────────────────────── -->
-    <section class="section" id="section-hero">
-      <div class="sec-label">
-        <span class="sec-label-rule"></span>Use Cases
-      </div>
+  <!-- Hero — transparent, over the globe -->
+  <section id="section-hero">
+    <div class="hero-inner">
+      <div class="sec-label"><span class="sec-label-rule"></span>Use Cases</div>
       <h1 class="hero-heading">The SDK is live across two workloads.</h1>
       <p class="hero-body">Account takeover, business email compromise, synthetic identity, payment fraud — all originate somewhere else, by definition. Sanctions screening, securities offerings, content licensing, gaming compacts — all turn on where the user actually is. Octet replaces guesswork with a hardware-signed predicate against the policy you set.</p>
-    </section>
+    </div>
+  </section>
 
-    <!-- ── First section · Workload 01 ──────────────────────── -->
+  <!-- Content sheet — scrolls up over the fixed globe -->
+  <div id="panel-sheet">
+
+    <!-- ── Workload 01 ──────────────────────────────────────── -->
     <section class="section" id="section-wl01">
-      <div class="sec-label">
-        <span class="sec-label-rule"></span><span class="wl-num">01</span>· Workload
-      </div>
+      <div class="sec-label"><span class="sec-label-rule"></span><span class="wl-num">01</span>· Workload</div>
       <h2 class="wl-heading">Jurisdictional compliance and geofencing.</h2>
       <p class="wl-intro">A sanctions screen runs on an IP address and a country code from a dropdown. A five-dollar VPN defeats it. Major IP geolocation databases disagree on the same address by an average of 620 kilometres. The largest sanctions fine in banking history was $8.9 billion. A recent one was $4.3 billion, and the CEO did prison time. OFAC violations are strict liability. Octet replaces the IP heuristic with a hardware-signed predicate over presence.</p>
 
       <div class="sub">
-        <div class="sub-num">01.01</div>
-        <div class="sub-accent"></div>
-        <h3 class="sub-title">National exclusion: blocking the United States</h3>
-        <p class="sub-body">Unregistered securities offerings, certain derivatives, unlicensed gambling, and tokens that meet the Howey test all carry federal exposure. SEC Regulation S requires the seller to hold a reasonable belief that the buyer is outside the US. IP geolocation does not meet a defensible reasonable-belief standard. Self-attestation does not either.<br><br>Octet issues a hardware-signed proof before any session opens. The proof covers Puerto Rico, Guam, American Samoa, the US Virgin Islands, and the Northern Mariana Islands. Verifiable offline. Retained for audit. No raw coordinates leave the device.</p>
+        <div>
+          <div class="sub-num">01.01</div>
+          <div class="sub-accent"></div>
+          <h3 class="sub-title">National exclusion: blocking the United States</h3>
+          <p class="sub-body">Unregistered securities offerings, certain derivatives, unlicensed gambling, and tokens that meet the Howey test all carry federal exposure. SEC Regulation S requires the seller to hold a reasonable belief that the buyer is outside the US. IP geolocation does not meet a defensible reasonable-belief standard. Self-attestation does not either.<br><br>Octet issues a hardware-signed proof before any session opens. The proof covers Puerto Rico, Guam, American Samoa, the US Virgin Islands, and the Northern Mariana Islands. Verifiable offline. Retained for audit. No raw coordinates leave the device.</p>
+        </div>
         <div class="pills">
           <div class="pill-row"><span class="pill-label">Predicate</span><span class="pill-value">outside(us_polygon)</span></div>
           <div class="pill-row"><span class="pill-label">Regime</span><span class="pill-value">Reg S · Howey · ATS · broker-dealer</span></div>
@@ -567,10 +505,12 @@ select { width: 100%; border: 1px solid var(--brd); border-radius: 4px; padding:
       </div>
 
       <div class="sub">
-        <div class="sub-num">01.02</div>
-        <div class="sub-accent"></div>
-        <h3 class="sub-title">Sanctioned jurisdiction blocking</h3>
-        <p class="sub-body">OFAC and EU restrictive measures impose strict liability. Seventy-one million people in sanctioned jurisdictions live within 100 km of a border with a non-sanctioned territory. IP databases disagree on the same address by an average of 620 km — wider than the border between nearly every sanctioned and unsanctioned country on earth.<br><br>A regulator asking for evidence gets a signed predicate, not an IP heuristic.</p>
+        <div>
+          <div class="sub-num">01.02</div>
+          <div class="sub-accent"></div>
+          <h3 class="sub-title">Sanctioned jurisdiction blocking</h3>
+          <p class="sub-body">OFAC and EU restrictive measures impose strict liability. Seventy-one million people in sanctioned jurisdictions live within 100 km of a border with a non-sanctioned territory. IP databases disagree on the same address by an average of 620 km — wider than the border between nearly every sanctioned and unsanctioned country on earth.<br><br>A regulator asking for evidence gets a signed predicate, not an IP heuristic.</p>
+        </div>
         <div class="pills">
           <div class="pill-row"><span class="pill-label">Predicate</span><span class="pill-value">outside(sanctions_set)</span></div>
           <div class="pill-row"><span class="pill-label">Regime</span><span class="pill-value">OFAC · EU restrictive measures</span></div>
@@ -578,10 +518,12 @@ select { width: 100%; border: 1px solid var(--brd); border-radius: 4px; padding:
       </div>
 
       <div class="sub">
-        <div class="sub-num">01.03</div>
-        <div class="sub-accent"></div>
-        <h3 class="sub-title">State-by-state activation</h3>
-        <p class="sub-body">A single platform can serve only the jurisdictions where it holds authorisation, or where federal preemption has been judicially confirmed. The geofence updates without a client release as state injunctions issue or lift. The same primitive supports county-level and municipal carve-outs, and tribal land where gaming compacts apply.</p>
+        <div>
+          <div class="sub-num">01.03</div>
+          <div class="sub-accent"></div>
+          <h3 class="sub-title">State-by-state activation</h3>
+          <p class="sub-body">A single platform can serve only the jurisdictions where it holds authorisation, or where federal preemption has been judicially confirmed. The geofence updates without a client release as state injunctions issue or lift. The same primitive supports county-level and municipal carve-outs, and tribal land where gaming compacts apply.</p>
+        </div>
         <div class="pills">
           <div class="pill-row"><span class="pill-label">Predicate</span><span class="pill-value">inside(state_polygon)</span></div>
           <div class="pill-row"><span class="pill-label">Regime</span><span class="pill-value">State securities · gaming compacts</span></div>
@@ -589,10 +531,12 @@ select { width: 100%; border: 1px solid var(--brd); border-radius: 4px; padding:
       </div>
 
       <div class="sub">
-        <div class="sub-num">01.04</div>
-        <div class="sub-accent"></div>
-        <h3 class="sub-title">Sub-political zones: prisons, schools, stadiums</h3>
-        <p class="sub-body">Octet supports polygon definitions at any scale, from a single building to a campus to a stadium bowl. The same cryptographic guarantee as a national geofence. Operators publish their polygons; any compliant app honours them.</p>
+        <div>
+          <div class="sub-num">01.04</div>
+          <div class="sub-accent"></div>
+          <h3 class="sub-title">Sub-political zones: prisons, schools, stadiums</h3>
+          <p class="sub-body">Octet supports polygon definitions at any scale, from a single building to a campus to a stadium bowl. The same cryptographic guarantee as a national geofence. Operators publish their polygons; any compliant app honours them.</p>
+        </div>
         <div class="pills">
           <div class="pill-row"><span class="pill-label">Predicate</span><span class="pill-value">outside(restricted_polygon)</span></div>
           <div class="pill-row"><span class="pill-label">Regime</span><span class="pill-value">Venue ops · institutional policy</span></div>
@@ -600,19 +544,19 @@ select { width: 100%; border: 1px solid var(--brd); border-radius: 4px; padding:
       </div>
     </section>
 
-    <!-- ── Second section · Workload 02 ─────────────────────── -->
+    <!-- ── Workload 02 ──────────────────────────────────────── -->
     <section class="section" id="section-wl02">
-      <div class="sec-label">
-        <span class="sec-label-rule"></span><span class="wl-num">02</span>· Workload
-      </div>
+      <div class="sec-label"><span class="sec-label-rule"></span><span class="wl-num">02</span>· Workload</div>
       <h2 class="wl-heading">Fraud prevention.</h2>
       <p class="wl-intro">Account takeover, business email compromise, synthetic identities, AI-driven impersonation, payment fraud — every one originates somewhere else, by definition. When a proof of presence is bound to the device, the attacker fails. Generative AI has industrialised fraud; the only shield against perfect copies is ground truth that cannot be reproduced.</p>
 
       <div class="sub">
-        <div class="sub-num">02.01</div>
-        <div class="sub-accent"></div>
-        <h3 class="sub-title">Account takeover (invisible login)</h3>
-        <p class="sub-body">Octet runs alongside your existing auth. When the device produces a valid presence proof, your app can skip the push notification, the SMS code, the step-up challenge.<br><br>A criminal in Lagos logs in with stolen credentials and spoofs a Chicago IP to match the account holder. The IP checks pass. The device cannot produce a valid presence proof for Chicago. The proof fails. Your stack catches it. The real customer never sees a challenge.</p>
+        <div>
+          <div class="sub-num">02.01</div>
+          <div class="sub-accent"></div>
+          <h3 class="sub-title">Account takeover (invisible login)</h3>
+          <p class="sub-body">Octet runs alongside your existing auth. When the device produces a valid presence proof, your app can skip the push notification, the SMS code, the step-up challenge.<br><br>A criminal in Lagos logs in with stolen credentials and spoofs a Chicago IP to match the account holder. The IP checks pass. The device cannot produce a valid presence proof for Chicago. The proof fails. Your stack catches it. The real customer never sees a challenge.</p>
+        </div>
         <div class="pills">
           <div class="pill-row"><span class="pill-label">Predicate</span><span class="pill-value">within(50m, account_action_origin)</span></div>
           <div class="pill-row"><span class="pill-label">Anchor</span><span class="pill-value">ATO losses +23% YoY · MFA friction abandons 15–20%</span></div>
@@ -620,10 +564,12 @@ select { width: 100%; border: 1px solid var(--brd); border-radius: 4px; padding:
       </div>
 
       <div class="sub">
-        <div class="sub-num">02.02</div>
-        <div class="sub-accent"></div>
-        <h3 class="sub-title">Business email compromise · wire approval</h3>
-        <p class="sub-body">Your CFO approves wires from HQ all day. Octet adds a signed proof that the approval originated at HQ. An attacker submits a wire request with compromised credentials. Their device is not at HQ. The proof fails. Existing controls take over.</p>
+        <div>
+          <div class="sub-num">02.02</div>
+          <div class="sub-accent"></div>
+          <h3 class="sub-title">Business email compromise · wire approval</h3>
+          <p class="sub-body">Your CFO approves wires from HQ all day. Octet adds a signed proof that the approval originated at HQ. An attacker submits a wire request with compromised credentials. Their device is not at HQ. The proof fails. Existing controls take over.</p>
+        </div>
         <div class="pills">
           <div class="pill-row"><span class="pill-label">Predicate</span><span class="pill-value">within(100m, hq_address)</span></div>
           <div class="pill-row"><span class="pill-label">Anchor</span><span class="pill-value">63% of orgs hit by BEC · ~$130k avg loss</span></div>
@@ -631,10 +577,12 @@ select { width: 100%; border: 1px solid var(--brd); border-radius: 4px; padding:
       </div>
 
       <div class="sub">
-        <div class="sub-num">02.03</div>
-        <div class="sub-accent"></div>
-        <h3 class="sub-title">Invoice fraud · supplier verification</h3>
-        <p class="sub-body">Invoices from suppliers whose device is at their registered address are fast-tracked. An attacker in Vietnam compromises a supplier's email account. Their device is not at the supplier's address. The proof fails before the invoice enters the approval queue.</p>
+        <div>
+          <div class="sub-num">02.03</div>
+          <div class="sub-accent"></div>
+          <h3 class="sub-title">Invoice fraud · supplier verification</h3>
+          <p class="sub-body">Invoices from suppliers whose device is at their registered address are fast-tracked. An attacker in Vietnam compromises a supplier's email account. Their device is not at the supplier's address. The proof fails before the invoice enters the approval queue.</p>
+        </div>
         <div class="pills">
           <div class="pill-row"><span class="pill-label">Predicate</span><span class="pill-value">within(5km, supplier_address)</span></div>
           <div class="pill-row"><span class="pill-label">Anchor</span><span class="pill-value">44% of companies hit by invoice fraud · $133k avg per incident</span></div>
@@ -642,10 +590,12 @@ select { width: 100%; border: 1px solid var(--brd); border-radius: 4px; padding:
       </div>
 
       <div class="sub">
-        <div class="sub-num">02.04</div>
-        <div class="sub-accent"></div>
-        <h3 class="sub-title">Synthetic identity · multi-accounting</h3>
-        <p class="sub-body">Real users sign up normally. No CAPTCHA gauntlet, no KYC wall. A fraud ring spins up 1,000 wallets from a device farm in Shenzhen: blocked. Bot armies grinding gaming rewards from a data centre: gone. The predicate is non-collocation with existing accounts; the proof either holds or it does not.</p>
+        <div>
+          <div class="sub-num">02.04</div>
+          <div class="sub-accent"></div>
+          <h3 class="sub-title">Synthetic identity · multi-accounting</h3>
+          <p class="sub-body">Real users sign up normally. No CAPTCHA gauntlet, no KYC wall. A fraud ring spins up 1,000 wallets from a device farm in Shenzhen: blocked. Bot armies grinding gaming rewards from a data centre: gone. The predicate is non-collocation with existing accounts; the proof either holds or it does not.</p>
+        </div>
         <div class="pills">
           <div class="pill-row"><span class="pill-label">Predicate</span><span class="pill-value">not_colocated_with(existing_accounts)</span></div>
           <div class="pill-row"><span class="pill-label">Anchor</span><span class="pill-value">iGaming: ~15% revenue lost to multi-accounting · 26% fake accounts</span></div>
@@ -653,10 +603,12 @@ select { width: 100%; border: 1px solid var(--brd); border-radius: 4px; padding:
       </div>
 
       <div class="sub">
-        <div class="sub-num">02.05</div>
-        <div class="sub-accent"></div>
-        <h3 class="sub-title">Verified remote workforce</h3>
-        <p class="sub-body">Hire globally. The candidate claims Austin. Their device either produces a valid proof for Austin, or it does not. Octet adds a continuous, hardware-signed proof of jurisdiction to your existing compliance checks. The FBI has documented DPRK operatives at 300+ US companies; one indictment named fourteen operatives who generated $88 million over six years.</p>
+        <div>
+          <div class="sub-num">02.05</div>
+          <div class="sub-accent"></div>
+          <h3 class="sub-title">Verified remote workforce</h3>
+          <p class="sub-body">Hire globally. The candidate claims Austin. Their device either produces a valid proof for Austin, or it does not. Octet adds a continuous, hardware-signed proof of jurisdiction to your existing compliance checks. The FBI has documented DPRK operatives at 300+ US companies; one indictment named fourteen operatives who generated $88 million over six years.</p>
+        </div>
         <div class="pills">
           <div class="pill-row"><span class="pill-label">Predicate</span><span class="pill-value">not_in([DPRK, IR, RU, BY, CU, SY])</span></div>
           <div class="pill-row"><span class="pill-label">Anchor</span><span class="pill-value">DOJ Dec 2024 indictment · OFAC strict liability</span></div>
@@ -664,7 +616,7 @@ select { width: 100%; border: 1px solid var(--brd); border-radius: 4px; padding:
       </div>
     </section>
 
-    <!-- ── Third section · Closing ──────────────────────────── -->
+    <!-- ── Closing ──────────────────────────────────────────── -->
     <section class="section" id="section-closing">
       <div class="closing-meta">From claims to predicates</div>
       <h2 class="closing-h1">Every era trades trust for proof.</h2>
@@ -672,30 +624,41 @@ select { width: 100%; border: 1px solid var(--brd); border-radius: 4px; padding:
       <h2 class="closing-h2">The ground is where the truth has been all along.</h2>
     </section>
 
-  </div><!-- /content -->
-
-  <!-- Right: sticky canvas dock -->
-  <div id="canvas-dock">
-    <canvas id="cv"></canvas>
-  </div>
-
+  </div><!-- /panel-sheet -->
 </div><!-- /main -->
 
 <!-- ── Footer ──────────────────────────────────────────────────── -->
 <footer>
-  <div>
-    <div class="footer-brand">Octet</div>
-    <div class="footer-address">Bowling Green Lane, London EC1R.<br>Cryptographic Proof of Presence.</div>
-  </div>
-  <div class="footer-right">
-    <div>Contact</div>
-    <a href="mailto:hello@octetproof.com">hello@octetproof.com</a>
-    <div style="margin-top:4px;font-size:9px;letter-spacing:0.04em">Use Cases · v2</div>
+  <div id="footer-inner">
+    <div>
+      <div class="footer-brand">Octet</div>
+      <div class="footer-address">Bowling Green Lane, London EC1R.<br>Cryptographic Proof of Presence.</div>
+    </div>
+    <div class="footer-right">
+      <div>Contact</div>
+      <a href="mailto:hello@octetproof.com">hello@octetproof.com</a>
+      <div style="margin-top:4px;font-size:9px;letter-spacing:0.04em">Use Cases · v5</div>
+    </div>
   </div>
 </footer>
 
-<script>
+<!-- three.js via importmap -->
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
 "use strict";
+
+/* ══════════════════════════════════════════════════════════════════
+   OCTET VISUAL v5
+   A slowly-spinning continents globe (three.js, rendered offscreen)
+   is used purely as a BRIGHTNESS FIELD. That field drives the v2
+   pixelation effect: 5 tonal bands (Darks→Brights) rendered as
+   scattered coloured cells. Only the globe's luminance matters —
+   colour / texture fidelity is irrelevant, so it renders cheaply.
+   ══════════════════════════════════════════════════════════════════ */
 
 /* ══ Colour themes ════════════════════════════════════════════════ */
 const THEMES = {
@@ -714,134 +677,115 @@ const LAYER_NAMES = { d:'Darks', s:'Shadows', m:'Midtones', h:'Highlights', b:'B
 /* ══ Colour helpers ═══════════════════════════════════════════════ */
 function hexRgb(h){ return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]; }
 const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
-const easeIO = t => t < .5 ? 2*t*t : -1+(4-2*t)*t;
 const rgbStr = a => `rgb(${a[0]|0},${a[1]|0},${a[2]|0})`;
 
-/* ══ Per-section state ════════════════════════════════════════════
-   Three sections: 0 First (noise), 1 Second (video), 2 Third (video).
-   Each carries a source type, noise params, and a visual preset.    */
+/* ══ Single visual state ══════════════════════════════════════════
+   One globe, one look. `globe` holds every exposed globe/arc param;
+   `preset` holds the pixelation look (background, tone thresholds,
+   and the five brightness layers).                                  */
 function L(id,theme,mode,ps,dn,jt,extra){
   return Object.assign({ id, theme, c1:'#02e6ff', c2:'#0044cc', mode,
     ps:String(ps), dn:String(dn), jt:String(jt), sw:'0', sc:'#000000', sg:false, en:true }, extra||{});
 }
-const STATES = [
-  { // ── First · game of life ──
-    source:'life',
-    noise:{ speed:0.6, scale:7, detail:3, contrast:42 },
-    life:{ speed:9, scale:90, decay:55, density:32 },
-    pointer:{ on:true, size:26, fade:6 },
-    trail:{ on:true, amount:100 },
-    preset:{ bgc:'#f6f1ea', td:'15', ts:'174', tm:'221', th:'250', layers:[
-      L('d','surface','random-gradient',15,13,0),
-      L('s','sunset','random-gradient',15,72,0),
-      L('m','bloom','random-gradient',15,68,0),
-      L('h','bloom','random-gradient',15,78,0),
-      L('b','forest','random-gradient',15,72,0),
-    ]}
+const S = {
+  source:'globe',
+  noise:{ speed:0.35, scale:6, detail:3, contrast:45 },
+  globe:{
+    spin:0.14, tiltX:16, size:0.82, yOffset:-0.62,
+    light:2.4, ambient:0.42, lightAz:135, lightEl:22,
+    texture:'water', bright:1.0, opacity:1.0,
+    arcCount:14, arcSpeed:0.45, arcSpawn:1.6, arcLen:0.32,
+    arcThick:0.9, arcAlt:0.28, arcBright:1.6,
   },
-  { // ── Second · video ──
-    source:'video',
-    noise:{ speed:0.5, scale:6, detail:3, contrast:40 },
-    life:{ speed:9, scale:90, decay:55, density:32 },
-    pointer:{ on:true, size:26, fade:6 },
-    trail:{ on:true, amount:100 },
-    preset:{ bgc:'#ededed', td:'0', ts:'57', tm:'118', th:'255', layers:[
-      L('d','custom','solid',40,100,0,{c1:'#f2f2f2',sw:'1',sc:'#d4d4d4',en:false}),
-      L('s','sunset','random-gradient',25,87,0,{sg:true,en:false}),
-      L('m','surface','random-gradient',25,88,0,{sg:true}),
-      L('h','bloom','random-gradient',4,90,0,{sg:true}),
-      L('b','forest','solid-brightness',40,95,0,{en:false}),
-    ]}
-  },
-  { // ── Third · video ──
-    source:'video',
-    noise:{ speed:0.4, scale:5, detail:2, contrast:55 },
-    life:{ speed:9, scale:90, decay:55, density:32 },
-    pointer:{ on:false, size:26, fade:6 },
-    trail:{ on:true, amount:100 },
-    preset:{ bgc:'#f6f1ea', td:'20', ts:'51', tm:'106', th:'13', layers:[
-      L('d','surface','gradient-cell',73,89,0,{sg:true}),
-      L('s','sunset','solid',53,92,0,{sw:'2',sg:true,en:false}),
-      L('m','forest','gradient-cell',34,72,0),
-      L('h','bloom','solid',59,89,0,{sw:'2',sg:true}),
-      L('b','surface','solid-brightness',12,100,0,{sw:'11',sc:'#8a1919',sg:true}),
-    ]}
-  },
-];
-
-/* Content section id → state index */
-const SECTION_MAP = {
-  'section-hero':    0,
-  'section-wl01':    0,
-  'section-wl02':    1,
-  'section-closing': 2,
+  pointer:{ on:false, size:30, fade:6 },
+  trail:{ on:true, amount:97 },
+  preset:{ bgc:'#f5f1ea', td:'28', ts:'73', tm:'209', th:'245', layers:[
+    L('d','surface','random-gradient',14,69,0,{en:false}),
+    L('s','forest','random-gradient',3,66,0),
+    L('m','surface','random-gradient',27,18,0),
+    L('h','sunset','random-gradient',8,86,0),
+    L('b','bloom','random-gradient',7,89,0),
+  ]},
 };
-const TAB_NAMES = ['First', 'Second', 'Third'];
 
-/* ══ Preset library ═══════════════════════════════════════════════
-   Built-in visual presets the user can apply to any section, plus
-   user-saved presets in localStorage. A preset = the visual look
-   (bgc, thresholds, trail, layers) — not the section's source.     */
+/* ══ Preset library (pixelation looks) ════════════════════════════ */
 const PRESETS = [
-  { name:'Botanical', state:{td:'18',ts:'55',tm:'130',th:'210',bgc:'#000000',layers:[
+  { name:'Terra', state:{bgc:'#f5f1ea',td:'28',ts:'88',tm:'150',th:'214',trail:{on:true,amount:90},layers:[
+    {id:'d',theme:'surface',c1:'#02e6ff',c2:'#0044cc',mode:'random-gradient',ps:'16',dn:'26',jt:'0',sw:'0',sc:'#000000',sg:false,en:true},
+    {id:'s',theme:'forest',c1:'#02e6ff',c2:'#0044cc',mode:'random-gradient',ps:'16',dn:'66',jt:'0',sw:'0',sc:'#000000',sg:false,en:true},
+    {id:'m',theme:'surface',c1:'#02e6ff',c2:'#0044cc',mode:'gradient-cell',ps:'15',dn:'82',jt:'0',sw:'0',sc:'#000000',sg:false,en:true},
+    {id:'h',theme:'sunset',c1:'#02e6ff',c2:'#0044cc',mode:'random-gradient',ps:'14',dn:'86',jt:'0',sw:'0',sc:'#000000',sg:false,en:true},
+    {id:'b',theme:'bloom',c1:'#02e6ff',c2:'#0044cc',mode:'random-gradient',ps:'12',dn:'80',jt:'0',sw:'0',sc:'#000000',sg:false,en:true},
+  ]}},
+  { name:'Botanical', state:{bgc:'#000000',td:'18',ts:'55',tm:'130',th:'210',trail:{on:false,amount:70},layers:[
     {id:'d',theme:'bloom',c1:'#e18ea3',c2:'#cf2f1e',mode:'solid-brightness',ps:'16',dn:'80',jt:'18',sw:'0',sc:'#000000',sg:false,en:false},
     {id:'s',theme:'forest',c1:'#a0b80a',c2:'#4e5d02',mode:'solid-brightness',ps:'16',dn:'80',jt:'18',sw:'0',sc:'#000000',sg:false,en:true},
     {id:'m',theme:'surface',c1:'#645139',c2:'#5ca6cd',mode:'gradient-cell',ps:'24',dn:'88',jt:'20',sw:'0',sc:'#000000',sg:false,en:true},
     {id:'h',theme:'bloom',c1:'#e18ea3',c2:'#cf2f1e',mode:'random-gradient',ps:'36',dn:'90',jt:'22',sw:'0',sc:'#000000',sg:false,en:true},
     {id:'b',theme:'sunset',c1:'#e44d43',c2:'#f9cf80',mode:'gradient-cell',ps:'28',dn:'95',jt:'14',sw:'0',sc:'#000000',sg:false,en:true},
   ]}},
-  { name:'Preset 1', state:{"bgc":"#ededed","td":"0","ts":"40","tm":"72","th":"230","layers":[{"id":"d","theme":"bloom","c1":"#02e6ff","c2":"#0044cc","mode":"solid-brightness","ps":"16","dn":"80","jt":"18","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"s","theme":"surface","c1":"#02e6ff","c2":"#0044cc","mode":"random-gradient","ps":"89","dn":"100","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"m","theme":"forest","c1":"#02e6ff","c2":"#0044cc","mode":"solid-brightness","ps":"12","dn":"88","jt":"0","sw":"0","sc":"#000000","sg":true,"en":true},{"id":"h","theme":"sunset","c1":"#02e6ff","c2":"#0044cc","mode":"solid-brightness","ps":"10","dn":"90","jt":"22","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"b","theme":"sunset","c1":"#02e6ff","c2":"#0044cc","mode":"solid-brightness","ps":"12","dn":"95","jt":"14","sw":"0","sc":"#000000","sg":false,"en":true}]}},
-  { name:'Preset 2', state:{"bgc":"#ededed","td":"19","ts":"55","tm":"180","th":"230","layers":[{"id":"d","theme":"custom","c1":"#f2f2f2","c2":"#0044cc","mode":"solid","ps":"40","dn":"100","jt":"0","sw":"1","sc":"#d4d4d4","sg":false,"en":true},{"id":"s","theme":"surface","c1":"#02e6ff","c2":"#0044cc","mode":"gradient-cell","ps":"40","dn":"87","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"m","theme":"forest","c1":"#02e6ff","c2":"#0044cc","mode":"solid","ps":"40","dn":"88","jt":"0","sw":"0","sc":"#000000","sg":true,"en":true},{"id":"h","theme":"sunset","c1":"#02e6ff","c2":"#0044cc","mode":"solid-brightness","ps":"40","dn":"90","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"b","theme":"sunset","c1":"#02e6ff","c2":"#0044cc","mode":"solid-brightness","ps":"40","dn":"95","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true}]}},
-  { name:'Preset 3', state:{"bgc":"#ededed","td":"0","ts":"57","tm":"118","th":"255","layers":[{"id":"d","theme":"custom","c1":"#f2f2f2","c2":"#0044cc","mode":"solid","ps":"40","dn":"100","jt":"0","sw":"1","sc":"#d4d4d4","sg":false,"en":false},{"id":"s","theme":"sunset","c1":"#02e6ff","c2":"#0044cc","mode":"random-gradient","ps":"25","dn":"87","jt":"0","sw":"0","sc":"#000000","sg":true,"en":true},{"id":"m","theme":"surface","c1":"#02e6ff","c2":"#0044cc","mode":"random-gradient","ps":"25","dn":"88","jt":"0","sw":"0","sc":"#000000","sg":true,"en":true},{"id":"h","theme":"bloom","c1":"#02e6ff","c2":"#0044cc","mode":"random-gradient","ps":"25","dn":"90","jt":"0","sw":"0","sc":"#000000","sg":true,"en":true},{"id":"b","theme":"forest","c1":"#02e6ff","c2":"#0044cc","mode":"solid-brightness","ps":"40","dn":"95","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true}]}},
-  { name:'Preset 4', state:{"td":"0","ts":"108","tm":"139","th":"250","bgc":"#c7c7c7","layers":[{"id":"d","theme":"forest","c1":"#cdb18a","c2":"#7a4a7b","mode":"solid-brightness","ps":"18","dn":"70","jt":"18","sw":"0","sc":"#000000","sg":false,"en":false},{"id":"s","theme":"bloom","c1":"#8a153f","c2":"#cb03db","mode":"solid-brightness","ps":"47","dn":"72","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"m","theme":"bloom","c1":"#48924b","c2":"#2d57a9","mode":"gradient-cell","ps":"76","dn":"68","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"h","theme":"bloom","c1":"#fbb63f","c2":"#b8bdc5","mode":"random-gradient","ps":"67","dn":"78","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"b","theme":"forest","c1":"#909e34","c2":"#ccb7c2","mode":"gradient-cell","ps":"36","dn":"72","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true}]}},
-  { name:'Preset 5', state:{"td":"26","ts":"174","tm":"221","th":"250","bgc":"#c7c7c7","layers":[{"id":"d","theme":"surface","c1":"#02e6ff","c2":"#0044cc","mode":"random-gradient","ps":"47","dn":"62","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"s","theme":"sunset","c1":"#02e6ff","c2":"#0044cc","mode":"gradient-cell","ps":"47","dn":"72","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"m","theme":"bloom","c1":"#02e6ff","c2":"#0044cc","mode":"random-gradient","ps":"47","dn":"68","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"h","theme":"bloom","c1":"#02e6ff","c2":"#0044cc","mode":"random-gradient","ps":"47","dn":"78","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"b","theme":"forest","c1":"#02e6ff","c2":"#0044cc","mode":"random-gradient","ps":"47","dn":"72","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true}]}},
-  { name:'Preset 7', state:{"td":"29","ts":"31","tm":"103","th":"225","bgc":"#c7c7c7","layers":[{"id":"d","theme":"forest","c1":"#61f836","c2":"#213979","mode":"gradient-cell","ps":"71","dn":"50","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"s","theme":"sunset","c1":"#bc018b","c2":"#8f1ac3","mode":"random-gradient","ps":"21","dn":"92","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"m","theme":"sunset","c1":"#00277a","c2":"#0d4f01","mode":"solid","ps":"61","dn":"95","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"h","theme":"bloom","c1":"#fe8a88","c2":"#aa519a","mode":"solid","ps":"59","dn":"89","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true},{"id":"b","theme":"sunset","c1":"#178d2b","c2":"#f32461","mode":"gradient-cell","ps":"40","dn":"50","jt":"0","sw":"0","sc":"#000000","sg":false,"en":true}]}},
-  { name:'Preset 7b', state:{"td":"29","ts":"31","tm":"103","th":"225","bgc":"#c7c7c7","layers":[{"id":"d","theme":"forest","c1":"#61f836","c2":"#213979","mode":"solid-brightness","ps":"71","dn":"50","jt":"0","sw":"1","sc":"#000000","sg":true,"en":true},{"id":"s","theme":"sunset","c1":"#bc018b","c2":"#8f1ac3","mode":"solid","ps":"21","dn":"92","jt":"0","sw":"2","sc":"#000000","sg":true,"en":true},{"id":"m","theme":"sunset","c1":"#00277a","c2":"#0d4f01","mode":"solid","ps":"61","dn":"95","jt":"0","sw":"1","sc":"#000000","sg":false,"en":true},{"id":"h","theme":"bloom","c1":"#fe8a88","c2":"#aa519a","mode":"solid","ps":"59","dn":"89","jt":"0","sw":"2","sc":"#000000","sg":true,"en":true},{"id":"b","theme":"sunset","c1":"#178d2b","c2":"#f32461","mode":"solid","ps":"40","dn":"50","jt":"0","sw":"2","sc":"#000000","sg":true,"en":true}]}},
 ];
 
-const PKEY = 'octet-v2-presets';
+const PKEY = 'octet-v5-presets';
 function getUserPresets(){ try { return JSON.parse(localStorage.getItem(PKEY)) || []; } catch { return []; } }
 function saveUserPresets(p){ try { localStorage.setItem(PKEY, JSON.stringify(p)); } catch {} }
 
-function applyPresetToSection(idx, s){
-  const p = STATES[idx].preset;
+function applyPreset(s){
+  const p = S.preset;
   p.bgc = s.bgc; p.td = String(s.td); p.ts = String(s.ts); p.tm = String(s.tm); p.th = String(s.th);
   p.layers = s.layers.map(l => ({
     id:l.id, theme:l.theme, c1:l.c1||'#02e6ff', c2:l.c2||'#0044cc', mode:l.mode,
     ps:String(l.ps), dn:String(l.dn), jt:String(l.jt), sw:String(l.sw||0), sc:l.sc||'#000000',
     sg:!!l.sg, en:l.en !== false
   }));
-  if (s.trail) STATES[idx].trail = { on:!!s.trail.on, amount:+s.trail.amount || 70 };
-  ensureScatter(idx);
+  if (s.trail) S.trail = { on:!!s.trail.on, amount:+s.trail.amount || 70 };
+  SCAT = {};
 }
-function saveCurrentSectionAsPreset(name){
-  const st = STATES[curTab], p = st.preset;
-  const s = { bgc:p.bgc, td:p.td, ts:p.ts, tm:p.tm, th:p.th, trail:{ ...st.trail },
+function saveCurrentAsPreset(name){
+  const p = S.preset;
+  const s = { bgc:p.bgc, td:p.td, ts:p.ts, tm:p.tm, th:p.th, trail:{ ...S.trail },
     layers: p.layers.map(l => ({ ...l })) };
   const u = getUserPresets(); u.push({ name, state:s }); saveUserPresets(u);
 }
 
-/* ══ Canvas setup ═════════════════════════════════════════════════ */
-const CW = 440, CH = 550;
+/* ══ Canvas + dynamic sizing ══════════════════════════════════════
+   The output canvas fills the viewport (capped for perf). The globe
+   is rendered offscreen at a smaller resolution and stretched in —
+   brightness is all we sample, so it can be coarse.                 */
+let CW = 0, CH = 0;                       // pixelation buffer size
+const MAX_DIM = 1400;                     // cap the longest edge
+const MAX_GLOBE_PX = 1500;                // cap the globe's on-screen diameter
 const cv = document.getElementById('cv');
 const mainCtx = cv.getContext('2d');
-cv.width = CW; cv.height = CH;
 
-/* Pixel-sampling buffer (source is drawn here, then read) */
-const pixOff = document.createElement('canvas'); pixOff.width = CW; pixOff.height = CH;
+const pixOff = document.createElement('canvas');
 const pixCtx = pixOff.getContext('2d', { willReadFrequently: true });
+const ptrC = document.createElement('canvas');
+const ptrX = ptrC.getContext('2d');
 
-/* ══ Procedural noise (value-noise fBm) ═══════════════════════════ */
-const NW = 110, NH = 138;                 // low-res noise buffer (4:5)
+let SCAT = {};                            // scatter cache, cleared on resize
+
+function resize() {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const scale = Math.min(1, MAX_DIM / Math.max(vw, vh));
+  CW = Math.max(2, Math.round(vw * scale));
+  CH = Math.max(2, Math.round(vh * scale));
+  cv.width = CW; cv.height = CH;
+  pixOff.width = CW; pixOff.height = CH;
+  ptrC.width = CW; ptrC.height = CH;
+  SCAT = {};
+  resizeGlobe();
+}
+window.addEventListener('resize', resize);
+
+/* ══ Procedural noise fallback (value-noise fBm) ══════════════════ */
+const NW = 120, NH = 120;
 const noiseLow = document.createElement('canvas'); noiseLow.width = NW; noiseLow.height = NH;
 const noiseLowCtx = noiseLow.getContext('2d');
 const noiseImg = noiseLowCtx.createImageData(NW, NH);
-
-const NGRID = 64;                          // power of 2 for wrap mask
-const NMASK = NGRID - 1;
+const NGRID = 64, NMASK = NGRID - 1;
 const nvals = new Float32Array(NGRID * NGRID);
 for (let i = 0; i < nvals.length; i++) nvals[i] = Math.random();
-
 function vnoise(x, y) {
   const xi = Math.floor(x), yi = Math.floor(y);
   const xf = x - xi, yf = y - yi;
@@ -857,157 +801,220 @@ function fbm(x, y, oct) {
   return sum / norm;
 }
 function drawNoise(np, t) {
-  const sf = (+np.scale || 6) / NW;                 // feature size across width
-  const sp = +np.speed || 0;
+  const sf = (+np.scale || 6) / NW, sp = +np.speed || 0;
   const oct = clamp(Math.round(+np.detail || 3), 1, 5);
-  const k = 1 + (+np.contrast || 0) / 25;            // contrast multiplier 1..5
-  const ox = t * sp * 0.45, oy = t * sp * 0.27;      // diagonal drift
-  const d = noiseImg.data;
-  let p = 0;
-  for (let y = 0; y < NH; y++) {
-    for (let x = 0; x < NW; x++) {
-      let n = fbm(x*sf + ox, y*sf + oy, oct);
-      n = clamp(0.5 + (n - 0.5) * k, 0, 1);
-      const val = (n * 255) | 0;
-      d[p] = d[p+1] = d[p+2] = val; d[p+3] = 255;
-      p += 4;
-    }
+  const k = 1 + (+np.contrast || 0) / 25;
+  const ox = t * sp * 0.45, oy = t * sp * 0.27;
+  const d = noiseImg.data; let p = 0;
+  for (let y = 0; y < NH; y++) for (let x = 0; x < NW; x++) {
+    let n = fbm(x*sf + ox, y*sf + oy, oct);
+    n = clamp(0.5 + (n - 0.5) * k, 0, 1);
+    const val = (n * 255) | 0;
+    d[p] = d[p+1] = d[p+2] = val; d[p+3] = 255; p += 4;
   }
   noiseLowCtx.putImageData(noiseImg, 0, 0);
 }
 
-/* ══ Conway's Game of Life source ═════════════════════════════════
-   A toroidal GoL grid whose "heat" buffer (alive = 1, dead decays)
-   becomes the brightness field the pixelation samples. Re-seeds when
-   it nears extinction so it never goes fully static.                */
-const lifeCanvas = document.createElement('canvas');
-const lifeCtx = lifeCanvas.getContext('2d');
-let lifeW = 0, lifeH = 0;
-let lifeCur = null, lifeNext = null, lifeHeat = null, lifeImg = null;
-let lifeAcc = 0, lifeReseed = false;
+/* ══════════════════════════════════════════════════════════════════
+   ░░ GLOBE (three.js, offscreen) ░░
+   ══════════════════════════════════════════════════════════════════ */
+// Scroll momentum: any scrolling (either direction) adds to spinBoost,
+// which decays back to 0 so the globe accelerates while scrolling and
+// eases back to its default speed when the user stops. Always one-way.
+let spinBoost = 0;
+const SPIN_DECAY = 0.35;   // seconds — time constant for easing back
+const SPIN_MAX = 1.6;      // max extra rad/s added by scrolling
+let lastScrollY = window.scrollY;
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  spinBoost = Math.min(spinBoost + Math.abs(y - lastScrollY) * 0.006, SPIN_MAX);
+  lastScrollY = y;
+}, { passive: true });
 
-function lifeInit(cols){
-  lifeW = clamp(cols|0, 16, 220);
-  lifeH = Math.round(lifeW * CH / CW);
-  lifeCanvas.width = lifeW; lifeCanvas.height = lifeH;
-  lifeImg = lifeCtx.createImageData(lifeW, lifeH);
-  lifeCur = new Uint8Array(lifeW * lifeH);
-  lifeNext = new Uint8Array(lifeW * lifeH);
-  lifeHeat = new Float32Array(lifeW * lifeH);
-}
-function lifeSeed(density){
-  const p = (density || 32) / 100;
-  for (let i = 0; i < lifeCur.length; i++) { lifeCur[i] = Math.random() < p ? 1 : 0; lifeHeat[i] = lifeCur[i]; }
-}
-function lifeStep(decay){
-  const W = lifeW, H = lifeH, cur = lifeCur, nxt = lifeNext;
-  let pop = 0;
-  for (let y = 0; y < H; y++) {
-    const ym = ((y-1+H)%H)*W, y0 = y*W, yp = ((y+1)%H)*W;
-    for (let x = 0; x < W; x++) {
-      const xm = (x-1+W)%W, xp = (x+1)%W;
-      const n = cur[ym+xm]+cur[ym+x]+cur[ym+xp]+cur[y0+xm]+cur[y0+xp]+cur[yp+xm]+cur[yp+x]+cur[yp+xp];
-      const next = (cur[y0+x] ? (n===2||n===3) : (n===3)) ? 1 : 0;
-      nxt[y0+x] = next; pop += next;
+const Globe = (() => {
+  const glCanvas = document.createElement('canvas');
+  let renderer, scene, camera, tiltGroup, spinGroup, sphere, mat;
+  let ambient, dirLight;
+  const textures = {};
+  let loadedTex = null;
+  let ready = false;
+  const R = 1;                            // globe radius (world units)
+  const arcs = [];
+  let spawnAcc = 0;
+  const GH_MAX = 620;                     // cap offscreen globe height
+
+  function llToVec(lat, lng, r) {
+    const phi = (90 - lat) * Math.PI / 180, theta = (lng + 180) * Math.PI / 180;
+    return new THREE.Vector3(
+      -r * Math.sin(phi) * Math.cos(theta),
+       r * Math.cos(phi),
+       r * Math.sin(phi) * Math.sin(theta));
+  }
+  // spherical-ish interpolation (nlerp) with an altitude bump
+  function arcPoints(a, b, alt, n) {
+    const va = a.clone().normalize(), vb = b.clone().normalize(), out = [];
+    for (let i = 0; i <= n; i++) {
+      const t = i / n;
+      const v = va.clone().lerp(vb, t).normalize();
+      const h = R * (1 + alt * Math.sin(Math.PI * t));
+      out.push(v.multiplyScalar(h));
     }
+    return out;
   }
-  lifeCur = nxt; lifeNext = cur;
-  const d = clamp(decay, 0, 0.96);
-  for (let i = 0; i < lifeHeat.length; i++) { if (lifeCur[i]) lifeHeat[i] = 1; else lifeHeat[i] *= d; }
-  if (pop < lifeCur.length * 0.02) {            // near extinction → sprinkle new soup
-    const add = lifeCur.length * 0.05 | 0;
-    for (let k = 0; k < add; k++) { const i = (Math.random()*lifeCur.length)|0; lifeCur[i] = 1; lifeHeat[i] = 1; }
-  }
-}
-function lifeDrawHeat(){
-  const d = lifeImg.data;
-  for (let i = 0, j = 0; i < lifeHeat.length; i++, j += 4) {
-    const v = (lifeHeat[i]*255)|0; d[j] = d[j+1] = d[j+2] = v; d[j+3] = 255;
-  }
-  lifeCtx.putImageData(lifeImg, 0, 0);
-}
-function drawLife(lp, dt){
-  const cols = clamp((+lp.scale||90)|0, 16, 220);
-  if (lifeW !== cols) { lifeInit(cols); lifeSeed(lp.density); }
-  if (lifeReseed) { lifeSeed(lp.density); lifeReseed = false; }
-  const interval = 1 / clamp(+lp.speed||9, 0.5, 60);
-  lifeAcc += dt; if (lifeAcc > 1) lifeAcc = interval;     // clamp after tab-out
-  let steps = 0;
-  const decay = clamp((+lp.decay||0)/100, 0, 0.96);
-  while (lifeAcc >= interval && steps < 4) { lifeStep(decay); lifeAcc -= interval; steps++; }
-  lifeDrawHeat();
-}
-/* Seed a cluster of live cells at a grid position (pointer interaction) */
-function lifeSeedAt(nx, ny){
-  if (!lifeCur) return;
-  const gx = (nx/CW*lifeW)|0, gy = (ny/CH*lifeH)|0, r = 2;
-  for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
-    if (Math.random() > 0.55) continue;
-    const x = (gx+dx+lifeW)%lifeW, y = (gy+dy+lifeH)%lifeH, i = y*lifeW+x;
-    lifeCur[i] = 1; lifeHeat[i] = 1;
-  }
-}
 
-/* ══ Pointer trail (all sections) ═════════════════════════════════
-   Soft white blobs stamped at the cursor onto an additive buffer that
-   fades over time; composited into the brightness field so cells spawn
-   in each section's own style and dissolve as the trail fades.       */
-const DEFAULT_POINTER = { on:true, size:26, fade:6 };
-function curPointer(){ return STATES[liveIdx].pointer || DEFAULT_POINTER; }
-const ptrC = document.createElement('canvas'); ptrC.width = CW; ptrC.height = CH;
-const ptrX = ptrC.getContext('2d');
+  function makeArc() {
+    const g = S.globe;
+    const lat1 = (Math.random()*160-80), lng1 = (Math.random()*360-180);
+    const lat2 = (Math.random()*160-80), lng2 = (Math.random()*360-180);
+    const pts = arcPoints(llToVec(lat1,lng1,R), llToVec(lat2,lng2,R), g.arcAlt, 64);
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const tubular = 64, radial = 6;
+    const geo = new THREE.TubeGeometry(curve, tubular, 0.004 * g.arcThick * R, radial, false);
+    const material = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(g.arcBright, g.arcBright, g.arcBright),
+      transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+    });
+    const mesh = new THREE.Mesh(geo, material);
+    spinGroup.add(mesh);
+    return { mesh, geo, material, head: 0, tubular, radial, ringIdx: radial * 6, done: false };
+  }
+  function disposeArc(a) { spinGroup.remove(a.mesh); a.geo.dispose(); a.material.dispose(); }
+
+  function updateArcs(dt) {
+    const g = S.globe;
+    // spawn up to arcCount
+    spawnAcc += dt * g.arcSpawn;
+    while (spawnAcc >= 1 && arcs.length < g.arcCount) { arcs.push(makeArc()); spawnAcc -= 1; }
+    if (spawnAcc > 2) spawnAcc = 2;
+    const len = g.arcLen;
+    for (let i = arcs.length - 1; i >= 0; i--) {
+      const a = arcs[i];
+      a.head += dt * g.arcSpeed;
+      a.material.color.setRGB(g.arcBright, g.arcBright, g.arcBright);
+      const h = a.head;
+      const startFrac = clamp(h - len, 0, 1), endFrac = clamp(h, 0, 1);
+      const start = Math.floor(startFrac * a.tubular) * a.ringIdx;
+      const count = Math.max(0, Math.floor(endFrac * a.tubular) * a.ringIdx - start);
+      a.geo.setDrawRange(start, count);
+      if (h > 1 + len) { disposeArc(a); arcs.splice(i, 1); }
+    }
+    // if the pool shrank in the GUI, retire extras naturally (no respawn handles it)
+  }
+
+  function applyTexture() {
+    const key = S.globe.texture;
+    if (key === loadedTex) return;
+    loadedTex = key;
+    if (key === 'none') { mat.map = null; mat.color.setScalar(0.85); }
+    else { mat.map = textures[key] || null; mat.color.setScalar(1); }
+    mat.needsUpdate = true;
+  }
+
+  function init() {
+    renderer = new THREE.WebGLRenderer({ canvas: glCanvas, antialias: true, alpha: false });
+    renderer.setClearColor(0x000000, 1);           // space = black = darkest band
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+
+    tiltGroup = new THREE.Group();
+    spinGroup = new THREE.Group();
+    tiltGroup.add(spinGroup);
+    scene.add(tiltGroup);
+
+    mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 });
+    sphere = new THREE.Mesh(new THREE.SphereGeometry(R, 64, 48), mat);
+    spinGroup.add(sphere);
+
+    ambient = new THREE.AmbientLight(0xffffff, S.globe.ambient);
+    dirLight = new THREE.DirectionalLight(0xffffff, S.globe.light);
+    scene.add(ambient, dirLight);
+
+    const loader = new THREE.TextureLoader();
+    loader.load('./media/earth-water.png', t => { t.colorSpace = THREE.SRGBColorSpace; textures.water = t; loadedTex = null; applyTexture(); ready = true; });
+    loader.load('./media/earth-dark.jpg',  t => { t.colorSpace = THREE.SRGBColorSpace; textures.dark  = t; loadedTex = null; applyTexture(); });
+    // usable immediately even before textures arrive
+    ready = true;
+    resizeGlobe();
+  }
+
+  function resizeGlobe() {
+    if (!renderer) return;
+    const aspect = CW / CH;
+    const gh = Math.min(CH, GH_MAX);
+    const gw = Math.max(2, Math.round(gh * aspect));
+    renderer.setSize(gw, gh, false);
+    camera.aspect = aspect;
+    camera.updateProjectionMatrix();
+  }
+
+  function render(dt) {
+    if (!renderer) return;
+    const g = S.globe;
+    applyTexture();
+    // framing — fit the sphere to a fraction (g.size) of the longer viewport
+    // axis, but never wider than MAX_GLOBE_PX on screen.
+    const tanHalf = Math.tan((30 * Math.PI / 180) / 2);
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const fitAxis = vw >= vh ? vw : vh;
+    const diameter = Math.min(g.size * fitAxis, MAX_GLOBE_PX);   // CSS px
+    const dist = R * vh / (diameter * tanHalf);
+    camera.position.set(0, 0, dist);
+    camera.lookAt(0, 0, 0);
+    tiltGroup.position.y = g.yOffset;
+    tiltGroup.rotation.x = g.tiltX * Math.PI / 180;
+    spinGroup.rotation.y += dt * (g.spin + spinBoost);
+    spinBoost *= Math.exp(-dt / SPIN_DECAY);   // ease back to default speed
+    // lighting
+    ambient.intensity = g.ambient * g.bright;
+    dirLight.intensity = g.light * g.bright;
+    const az = g.lightAz * Math.PI / 180, el = g.lightEl * Math.PI / 180;
+    dirLight.position.set(
+      Math.cos(el) * Math.sin(az),
+      Math.sin(el),
+      Math.cos(el) * Math.cos(az)).multiplyScalar(5);
+    updateArcs(dt);
+    renderer.render(scene, camera);
+  }
+
+  return { init, render, resize: resizeGlobe, get canvas(){ return glCanvas; }, get ready(){ return ready; } };
+})();
+function resizeGlobe(){ Globe.resize && Globe.resize(); }
+
+/* ══ Pointer trail (optional cursor interaction) ══════════════════ */
 let ptrActive = false, ptrLX = 0, ptrLY = 0;
-
 function stampPointer(x, y){
-  const rad = curPointer().size;
+  const rad = S.pointer.size;
   ptrX.globalCompositeOperation = 'lighter';
   const dist = ptrActive ? Math.hypot(x-ptrLX, y-ptrLY) : 0;
-  const steps = Math.max(1, Math.round(dist / (rad*0.5)));   // interpolate fast moves
+  const steps = Math.max(1, Math.round(dist / (rad*0.5)));
   for (let s = 0; s < steps; s++) {
     const t = steps > 1 ? s/(steps-1) : 0;
     const px = ptrActive ? ptrLX + (x-ptrLX)*t : x;
     const py = ptrActive ? ptrLY + (y-ptrLY)*t : y;
-    const g = ptrX.createRadialGradient(px, py, 0, px, py, rad);
-    g.addColorStop(0, 'rgba(255,255,255,0.85)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    ptrX.fillStyle = g;
+    const gr = ptrX.createRadialGradient(px, py, 0, px, py, rad);
+    gr.addColorStop(0, 'rgba(255,255,255,0.85)');
+    gr.addColorStop(1, 'rgba(255,255,255,0)');
+    ptrX.fillStyle = gr;
     ptrX.beginPath(); ptrX.arc(px, py, rad, 0, 6.2832); ptrX.fill();
   }
   ptrX.globalCompositeOperation = 'source-over';
   ptrActive = true; ptrLX = x; ptrLY = y;
-  if (STATES[liveIdx].source === 'life') lifeSeedAt(x, y);   // also feed the simulation
 }
 function fadePointer(dt){
-  const a = clamp((curPointer().fade/100) * (dt*60), 0, 1);
+  const a = clamp((S.pointer.fade/100) * (dt*60), 0, 1);
   if (a <= 0) return;
   ptrX.globalCompositeOperation = 'source-over';
   ptrX.fillStyle = `rgba(0,0,0,${a})`;
   ptrX.fillRect(0, 0, CW, CH);
 }
-cv.addEventListener('pointermove', e => {
-  if (!curPointer().on) return;
-  const r = cv.getBoundingClientRect();
-  if (!r.width || !r.height) return;
-  stampPointer((e.clientX-r.left)*(CW/r.width), (e.clientY-r.top)*(CH/r.height));
-});
-cv.addEventListener('pointerleave', () => { ptrActive = false; });
-
-/* ══ Hidden video elements (one per section) ══════════════════════ */
-const vids = [];
-for (let i = 0; i < 3; i++) {
-  const v = document.createElement('video');
-  v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto';
-  v.style.display = 'none';
-  document.body.appendChild(v);
-  vids[i] = v;
-}
-/* Seed sections 2 & 3 with their videos until the user uploads a replacement */
-function seedVideo(i, src){ vids[i].src = src; vids[i].play().catch(()=>{}); }
-seedVideo(1, './media/section2c.mp4');
-seedVideo(2, './media/section3b.mp4');
+window.addEventListener('pointermove', e => {
+  if (!S.pointer.on) return;
+  stampPointer(e.clientX/window.innerWidth*CW, e.clientY/window.innerHeight*CH);
+}, { passive:true });
+window.addEventListener('pointerleave', () => { ptrActive = false; });
 
 /* ══ Scatter cache (rebuilt when ps/dn/jt of a layer change) ══════ */
-const SCAT = {};
 function buildScat(ps, dn, jt, W, H) {
   const step = ps, maxJ = step * (jt/100) * .5, pts = [];
   for (let cy = step*.5; cy < H+step; cy += step)
@@ -1017,83 +1024,38 @@ function buildScat(ps, dn, jt, W, H) {
     }
   return pts;
 }
-function getScat(idx, l) {
-  const key = idx + '_' + l.id;
-  const sig = l.ps + '_' + l.dn + '_' + l.jt;
+function getScat(l) {
+  const key = l.id, sig = l.ps + '_' + l.dn + '_' + l.jt + '_' + CW + '_' + CH;
   let e = SCAT[key];
   if (!e || e.sig !== sig) { e = { sig, pts: buildScat(+l.ps||30, +l.dn||100, +l.jt||0, CW, CH) }; SCAT[key] = e; }
   return e.pts;
 }
-function ensureScatter(idx){ STATES[idx].preset.layers.forEach(l => getScat(idx, l)); }
-
-/* ══ Aesthetic snapshot (the part that tweens) ════════════════════
-   Colours stored as [r,g,b] arrays so they can be re-interpolated. */
-function resolveColors(l){
-  if (l.theme && l.theme !== 'custom') return [THEMES[l.theme].c1, THEMES[l.theme].c2];
-  return [l.c1 || '#ffffff', l.c2 || '#000000'];
-}
-function aesOf(st){
-  const p = st.preset;
-  return {
-    bg: hexRgb(p.bgc || '#000000'),
-    td:+p.td||0, ts:+p.ts||55, tm:+p.tm||130, th:+p.th||210,
-    layers: p.layers.map(l => { const [a,b] = resolveColors(l); return { c1:hexRgb(a), c2:hexRgb(b), sw:+l.sw||0 }; })
-  };
-}
-function lerpAes(A, B, t){
-  const lf = (a,b)=>a+(b-a)*t;
-  const lc = (a,b)=>[lf(a[0],b[0]),lf(a[1],b[1]),lf(a[2],b[2])];
-  return {
-    bg: lc(A.bg,B.bg), td:lf(A.td,B.td), ts:lf(A.ts,B.ts), tm:lf(A.tm,B.tm), th:lf(A.th,B.th),
-    layers: B.layers.map((bl,i)=>{ const al = A.layers[i] || bl; return { c1:lc(al.c1,bl.c1), c2:lc(al.c2,bl.c2), sw:lf(al.sw,bl.sw) }; })
-  };
-}
-
-/* ══ Transition state ═════════════════════════════════════════════
-   Structural params (ps/dn/jt/mode/en) snap to the target instantly;
-   aesthetic params tween from the displayed snapshot to the target. */
-const TWEEN_MS = 900;
-let liveIdx = 0;
-let tweening = false, tweenStart = 0, clearOnce = true;
-let fromAes = aesOf(STATES[0]), toAes = aesOf(STATES[0]), curAes = aesOf(STATES[0]);
-
-function transitionTo(idx){
-  if (idx === liveIdx && !tweening) return;
-  fromAes = curAes;                 // start from whatever is on screen right now
-  liveIdx = idx;
-  toAes = aesOf(STATES[idx]);
-  ensureScatter(idx);
-  tweenStart = performance.now();
-  tweening = true;
-  clearOnce = true;                 // wipe any trail left from the previous section
-  ptrX.clearRect(0, 0, CW, CH); ptrActive = false;   // reset pointer trail per section
-  updateLiveTabUI();
-}
 
 /* ══ Renderer ═════════════════════════════════════════════════════ */
-function renderFrame(aes, px){
-  const st = STATES[liveIdx];
-
-  // Background fill — trail mode fades the previous frame instead of wiping it,
-  // leaving motion trails behind moving cells.
-  const trail = st.trail;
+let clearOnce = true;
+function renderFrame(px){
+  const p = S.preset;
+  const bg = hexRgb(p.bgc || '#000000');
+  const trail = S.trail;
   mainCtx.globalAlpha = (trail && trail.on && !clearOnce)
     ? clamp(1 - (trail.amount / 100) * 0.96, 0.04, 1)
     : 1;
-  mainCtx.fillStyle = rgbStr(aes.bg);
+  mainCtx.fillStyle = rgbStr(bg);
   mainCtx.fillRect(0, 0, CW, CH);
   mainCtx.globalAlpha = 1;
   clearOnce = false;
 
-  const tDk = aes.td, tSh = aes.ts, tMi = aes.tm, tHi = aes.th;
+  const tDk = +p.td||0, tSh = +p.ts||55, tMi = +p.tm||130, tHi = +p.th||210;
   const bnd = { d:[0,tDk], s:[tDk,tSh], m:[tSh,tMi], h:[tMi,tHi], b:[tHi,256] };
 
-  st.preset.layers.forEach((l, li) => {
+  p.layers.forEach(l => {
     if (l.en === false) return;
     const [lo, hi] = bnd[l.id] || [0,256];
-    const ps = +l.ps||30, mode = l.mode||'solid', sw = aes.layers[li].sw, sc = l.sc||'#000';
-    const c1 = rgbStr(aes.layers[li].c1), c2 = rgbStr(aes.layers[li].c2);
-    const pts = getScat(liveIdx, l);
+    const ps = +l.ps||30, mode = l.mode||'solid', sw = +l.sw||0, sc = l.sc||'#000';
+    const [ca, cb] = resolveColors(l);
+    const c1arr = hexRgb(ca), c2arr = hexRgb(cb);
+    const c1 = rgbStr(c1arr), c2 = rgbStr(c2arr);
+    const pts = getScat(l);
 
     const active = pts.filter(({rx,ry}) => {
       const sx = clamp(~~rx,0,CW-1), sy = clamp(~~ry,0,CH-1), i = (sy*CW+sx)*4;
@@ -1111,8 +1073,8 @@ function renderFrame(aes, px){
         const g = mainCtx.createLinearGradient(x,y,x+ps,y+ps);
         g.addColorStop(0,c1); g.addColorStop(1,c2); mainCtx.fillStyle = g;
       } else if (mode === 'solid-brightness') {
-        const a = aes.layers[li].c1, b = aes.layers[li].c2, tt = bri/255;
-        mainCtx.fillStyle = `rgb(${(a[0]+(b[0]-a[0])*tt)|0},${(a[1]+(b[1]-a[1])*tt)|0},${(a[2]+(b[2]-a[2])*tt)|0})`;
+        const tt = bri/255;
+        mainCtx.fillStyle = `rgb(${(c1arr[0]+(c2arr[0]-c1arr[0])*tt)|0},${(c1arr[1]+(c2arr[1]-c1arr[1])*tt)|0},${(c1arr[2]+(c2arr[2]-c1arr[2])*tt)|0})`;
       } else {
         const cos = Math.cos(ga)*ps, sin = Math.sin(ga)*ps;
         const g = mainCtx.createLinearGradient(rx-cos/2,ry-sin/2,rx+cos/2,ry+sin/2);
@@ -1127,22 +1089,29 @@ function renderFrame(aes, px){
     }
   });
 }
+function resolveColors(l){
+  if (l.theme && l.theme !== 'custom') return [THEMES[l.theme].c1, THEMES[l.theme].c2];
+  return [l.c1 || '#ffffff', l.c2 || '#000000'];
+}
 
 /* ══ Source sampling ══════════════════════════════════════════════ */
 function samplePixels(tSec, dt){
-  const st = STATES[liveIdx];
   let drew = false;
-  if (st.source === 'video') {
-    const v = vids[liveIdx];
-    if (v && v.readyState >= 2 && !v.ended && v.videoWidth) { pixCtx.drawImage(v, 0, 0, CW, CH); drew = true; }
-  } else if (st.source === 'life') {
-    drawLife(st.life || { speed:9, scale:90, decay:55, density:32 }, dt);
-    pixCtx.drawImage(lifeCanvas, 0, 0, CW, CH); drew = true;
+  if (S.source === 'globe' && Globe.ready) {
+    Globe.render(dt);
+    // master opacity fades the globe's brightness toward black (empty),
+    // so the whole globe recedes into the background as it drops.
+    pixCtx.globalAlpha = 1;
+    pixCtx.fillStyle = '#000';
+    pixCtx.fillRect(0, 0, CW, CH);
+    pixCtx.globalAlpha = clamp(S.globe.opacity, 0, 1);
+    pixCtx.drawImage(Globe.canvas, 0, 0, CW, CH);
+    pixCtx.globalAlpha = 1;
+    drew = true;
   }
-  if (!drew) { drawNoise(st.noise, tSec); pixCtx.drawImage(noiseLow, 0, 0, CW, CH); }
+  if (!drew) { drawNoise(S.noise, tSec); pixCtx.drawImage(noiseLow, 0, 0, CW, CH); }
 
-  // Composite the pointer trail additively so cells spawn near the cursor
-  if (curPointer().on) {
+  if (S.pointer.on) {
     pixCtx.globalCompositeOperation = 'lighter';
     pixCtx.drawImage(ptrC, 0, 0);
     pixCtx.globalCompositeOperation = 'source-over';
@@ -1157,61 +1126,19 @@ function frame(ts){
   const tSec = ts / 1000;
   const dt = prevSec == null ? 0 : Math.min(0.1, tSec - prevSec);
   prevSec = tSec;
-
-  if (tweening) {
-    const t = clamp((ts - tweenStart) / TWEEN_MS, 0, 1);
-    curAes = lerpAes(fromAes, toAes, easeIO(t));
-    if (t >= 1) tweening = false;
-  } else {
-    curAes = aesOf(STATES[liveIdx]);   // read live so panel edits reflect instantly
-  }
-
-  if (curPointer().on) fadePointer(dt);
+  if (S.pointer.on) fadePointer(dt);
   const px = samplePixels(tSec, dt);
-  renderFrame(curAes, px);
+  renderFrame(px);
 }
-requestAnimationFrame(frame);
-
-/* ══ Scroll-driven section changes ════════════════════════════════ */
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      const idx = SECTION_MAP[e.target.id];
-      if (idx !== undefined) transitionTo(idx);
-    }
-  });
-}, { threshold: 0.15 });
-Object.keys(SECTION_MAP).forEach(id => {
-  const el = document.getElementById(id);
-  if (el) observer.observe(el);
-});
 
 /* ══════════════════════════════════════════════════════════════════
    ░░ Settings panel ░░
-   Edits write straight into STATES[curTab]; the live section reads
-   STATES every frame, so changes appear immediately.
    ══════════════════════════════════════════════════════════════════ */
 const panel = document.getElementById('panel');
 const panelBody = document.getElementById('panel-body');
-let curTab = 0;
-
 document.getElementById('panel-toggle').addEventListener('click', () => panel.classList.toggle('hidden'));
 document.getElementById('panel-close').addEventListener('click', () => panel.classList.add('hidden'));
 
-document.querySelectorAll('.stab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    curTab = +tab.dataset.i;
-    document.querySelectorAll('.stab').forEach(t => t.classList.toggle('on', t === tab));
-    buildPanel();
-    transitionTo(curTab);   // preview the section you're editing
-  });
-});
-
-function updateLiveTabUI(){
-  document.querySelectorAll('.stab').forEach(t => t.classList.toggle('live', +t.dataset.i === liveIdx));
-}
-
-/* — small builders — */
 function rangeField(label, k, val, min, max, step){
   return `<div class="pfield"><label>${label}</label>
     <div class="prow">
@@ -1221,12 +1148,11 @@ function rangeField(label, k, val, min, max, step){
 }
 
 function buildPanel(){
-  const st = STATES[curTab];
-  const p = st.preset;
+  const p = S.preset, g = S.globe;
   let html = '';
 
   /* Preset library */
-  html += `<div class="pblock"><div class="pblock-title">Preset · ${TAB_NAMES[curTab]} section</div>
+  html += `<div class="pblock"><div class="pblock-title">Preset</div>
     <div class="prow" style="gap:5px">
       <select id="preset-sel" style="flex:1">${presetOptions()}</select>
       <button class="mini-btn" id="preset-apply">Apply</button>
@@ -1239,42 +1165,55 @@ function buildPanel(){
   </div>`;
 
   /* Source */
-  const lf = st.life || (st.life = { speed:9, scale:90, decay:55, density:32 });
   html += `<div class="pblock"><div class="pblock-title">Source</div>
     <div class="radio-row">
-      <label><input type="radio" name="src" data-k="source" value="life" ${st.source==='life'?'checked':''}><span>Life</span></label>
-      <label><input type="radio" name="src" data-k="source" value="noise" ${st.source==='noise'?'checked':''}><span>Noise</span></label>
-      <label><input type="radio" name="src" data-k="source" value="video" ${st.source==='video'?'checked':''}><span>Video</span></label>
+      <label><input type="radio" name="src" data-k="source" value="globe" ${S.source==='globe'?'checked':''}><span>Globe</span></label>
+      <label><input type="radio" name="src" data-k="source" value="noise" ${S.source==='noise'?'checked':''}><span>Noise</span></label>
     </div>
-    <div id="src-life" class="src-panel" style="margin-top:10px;${st.source==='life'?'':'display:none'}">
-      ${rangeField('Speed (gen/s)','life.speed',lf.speed,0.5,30,0.5)}
-      ${rangeField('Scale (cells)','life.scale',lf.scale,24,200,1)}
-      ${rangeField('Fade trail','life.decay',lf.decay,0,95,1)}
-      ${rangeField('Seed density','life.density',lf.density,2,90,1)}
-      <button class="mini-btn" id="life-reseed" style="margin-top:4px">Reseed</button>
+    <div id="src-globe" class="src-panel" style="margin-top:10px;${S.source==='globe'?'':'display:none'}">
+      <div class="pblock-title" style="margin-top:2px">Globe</div>
+      ${rangeField('Spin speed','globe.spin',g.spin,0,1,0.01)}
+      ${rangeField('Axis tilt','globe.tiltX',g.tiltX,-45,45,1)}
+      ${rangeField('Size (fill)','globe.size',g.size,0.5,2,0.05)}
+      ${rangeField('Vertical offset','globe.yOffset',g.yOffset,-1,1,0.02)}
+      <div class="pfield"><label>Texture</label>
+        <select data-k="globe.texture">
+          <option value="water" ${g.texture==='water'?'selected':''}>Land mask</option>
+          <option value="dark" ${g.texture==='dark'?'selected':''}>Earth (tonal)</option>
+          <option value="none" ${g.texture==='none'?'selected':''}>Plain sphere</option>
+        </select></div>
+      ${rangeField('Light intensity','globe.light',g.light,0,2.5,0.05)}
+      ${rangeField('Ambient','globe.ambient',g.ambient,0,1,0.02)}
+      ${rangeField('Overall brightness','globe.bright',g.bright,0.2,2,0.05)}
+      ${rangeField('Master opacity','globe.opacity',g.opacity,0,1,0.02)}
+      ${rangeField('Light azimuth','globe.lightAz',g.lightAz,0,360,1)}
+      ${rangeField('Light elevation','globe.lightEl',g.lightEl,-90,90,1)}
+      <div class="pblock-title" style="margin-top:10px">Arcs</div>
+      ${rangeField('Count','globe.arcCount',g.arcCount,0,40,1)}
+      ${rangeField('Speed','globe.arcSpeed',g.arcSpeed,0.05,2,0.05)}
+      ${rangeField('Spawn / s','globe.arcSpawn',g.arcSpawn,0,6,0.1)}
+      ${rangeField('Comet length','globe.arcLen',g.arcLen,0.05,1,0.01)}
+      ${rangeField('Thickness','globe.arcThick',g.arcThick,0.1,3,0.1)}
+      ${rangeField('Altitude','globe.arcAlt',g.arcAlt,0,0.8,0.02)}
+      ${rangeField('Brightness','globe.arcBright',g.arcBright,0.2,3,0.1)}
     </div>
-    <div id="src-noise" class="src-panel" style="margin-top:10px;${st.source==='noise'?'':'display:none'}">
-      ${rangeField('Speed','noise.speed',st.noise.speed,0,3,0.05)}
-      ${rangeField('Scale','noise.scale',st.noise.scale,2,24,1)}
-      ${rangeField('Detail','noise.detail',st.noise.detail,1,5,1)}
-      ${rangeField('Contrast','noise.contrast',st.noise.contrast,0,100,1)}
-    </div>
-    <div id="src-video" class="src-panel" style="margin-top:10px;${st.source==='video'?'':'display:none'}">
-      <input class="file-in" type="file" accept="video/*" data-vidup="${curTab}">
-      <div class="vid-status" id="vid-status">${videoStatus(curTab)}</div>
+    <div id="src-noise" class="src-panel" style="margin-top:10px;${S.source==='noise'?'':'display:none'}">
+      ${rangeField('Speed','noise.speed',S.noise.speed,0,3,0.05)}
+      ${rangeField('Scale','noise.scale',S.noise.scale,2,24,1)}
+      ${rangeField('Detail','noise.detail',S.noise.detail,1,5,1)}
+      ${rangeField('Contrast','noise.contrast',S.noise.contrast,0,100,1)}
     </div>
   </div>`;
 
-  /* Pointer interaction (per section) */
-  const pt = st.pointer || (st.pointer = { on:true, size:26, fade:6 });
-  html += `<div class="pblock"><div class="pblock-title">Pointer · ${TAB_NAMES[curTab]} section</div>
+  /* Pointer */
+  html += `<div class="pblock"><div class="pblock-title">Pointer</div>
     <div class="prow" style="justify-content:space-between">
-      <span style="font-size:11px">Cursor spawns cells</span>
-      <label class="tog"><input type="checkbox" data-k="pointer.on" ${pt.on?'checked':''}><span class="ts"></span></label>
+      <span style="font-size:11px">Cursor paints brightness</span>
+      <label class="tog"><input type="checkbox" data-k="pointer.on" ${S.pointer.on?'checked':''}><span class="ts"></span></label>
     </div>
     <div style="margin-top:8px">
-      ${rangeField('Brush size','pointer.size',pt.size,6,80,1)}
-      ${rangeField('Fade speed','pointer.fade',pt.fade,1,40,1)}
+      ${rangeField('Brush size','pointer.size',S.pointer.size,6,80,1)}
+      ${rangeField('Fade speed','pointer.fade',S.pointer.fade,1,40,1)}
     </div>
   </div>`;
 
@@ -1282,14 +1221,14 @@ function buildPanel(){
   html += `<div class="pblock"><div class="pblock-title">Trail</div>
     <div class="prow" style="justify-content:space-between">
       <span style="font-size:11px">Cell trail</span>
-      <label class="tog"><input type="checkbox" data-k="trail.on" ${st.trail.on?'checked':''}><span class="ts"></span></label>
+      <label class="tog"><input type="checkbox" data-k="trail.on" ${S.trail.on?'checked':''}><span class="ts"></span></label>
     </div>
-    <div id="trail-amt-wrap" style="margin-top:8px;${st.trail.on?'':'opacity:.4'}">
-      ${rangeField('Trail length','trail.amount',st.trail.amount,0,100,1)}
+    <div id="trail-amt-wrap" style="margin-top:8px;${S.trail.on?'':'opacity:.4'}">
+      ${rangeField('Trail length','trail.amount',S.trail.amount,0,100,1)}
     </div>
   </div>`;
 
-  /* Background + thresholds */
+  /* Tone */
   html += `<div class="pblock"><div class="pblock-title">Tone</div>
     <div class="pfield"><label>Background</label>
       <div class="prow"><input type="color" data-k="bgc" value="${p.bgc}"><span class="val">${p.bgc}</span></div></div>
@@ -1340,7 +1279,6 @@ function buildPanel(){
 
   panelBody.innerHTML = html;
   wirePresetControls();
-  updateLiveTabUI();
 }
 
 function presetOptions(){
@@ -1360,91 +1298,56 @@ function wirePresetControls(){
     if (!v) { presetMsg('Pick a preset first'); return; }
     const s = v.startsWith('b:') ? PRESETS[+v.slice(2)].state : (getUserPresets()[+v.slice(2)] || {}).state;
     if (!s) return;
-    applyPresetToSection(curTab, s);
-    buildPanel();
-    presetMsg('Applied to ' + TAB_NAMES[curTab] + ' section');
+    applyPreset(s); buildPanel(); presetMsg('Applied');
   };
   if (saveBtn) saveBtn.onclick = () => {
     const nm = document.getElementById('preset-name').value.trim();
     if (!nm) { presetMsg('Enter a name to save'); return; }
-    saveCurrentSectionAsPreset(nm);
-    buildPanel();
-    presetMsg('Saved "' + nm + '"');
+    saveCurrentAsPreset(nm); buildPanel(); presetMsg('Saved "' + nm + '"');
   };
 }
 
-function videoStatus(i){
-  const v = vids[i];
-  if (!v || !v.src) return 'No video loaded';
-  if (v.readyState >= 2) return 'Video ready';
-  return 'Loading…';
-}
-
-/* — write a value into STATES[curTab] given a data-k path — */
+/* — write a value into S given a data-k path — */
 function setK(k, val){
-  const st = STATES[curTab];
-  if (k === 'source') { st.source = val; }
-  else if (k.startsWith('noise.')) { st.noise[k.slice(6)] = +val; }
-  else if (k.startsWith('life.'))  { st.life[k.slice(5)] = +val; }
-  else if (k.startsWith('pointer.')) { const f = k.slice(8); st.pointer[f] = (f === 'on') ? val : +val; }
-  else if (k.startsWith('trail.')) { const f = k.slice(6); st.trail[f] = (f === 'on') ? val : +val; }
+  if (k === 'source') { S.source = val; }
+  else if (k.startsWith('noise.'))   { S.noise[k.slice(6)] = +val; }
+  else if (k.startsWith('globe.'))   { const f = k.slice(6); S.globe[f] = (f === 'texture') ? val : +val; }
+  else if (k.startsWith('pointer.')) { const f = k.slice(8); S.pointer[f] = (f === 'on') ? val : +val; }
+  else if (k.startsWith('trail.'))   { const f = k.slice(6); S.trail[f] = (f === 'on') ? val : +val; }
   else if (k.startsWith('L')) {
     const m = k.match(/^L(\d+)\.(.+)$/);
-    const l = st.preset.layers[+m[1]];
-    const f = m[2];
-    if (f === 'en') l.en = val;
-    else l[f] = val;
+    const l = S.preset.layers[+m[1]], f = m[2];
+    if (f === 'en') l.en = val; else l[f] = val;
+    if (f === 'ps' || f === 'dn' || f === 'jt') delete SCAT[l.id];
   } else {
-    st.preset[k] = val;   // bgc / td / ts / tm / th
+    S.preset[k] = val;   // bgc / td / ts / tm / th
   }
 }
 
-/* — delegated input handling — */
 panelBody.addEventListener('input', e => {
-  const el = e.target;
-  const k = el.dataset.k;
+  const el = e.target, k = el.dataset.k;
   if (!k) return;
-
   if (el.type === 'checkbox') { setK(k, el.checked); }
   else if (el.type === 'radio') {
     if (!el.checked) return;
     setK(k, el.value);
-    document.getElementById('src-life').style.display  = el.value==='life'  ? 'block' : 'none';
+    document.getElementById('src-globe').style.display = el.value==='globe' ? 'block' : 'none';
     document.getElementById('src-noise').style.display = el.value==='noise' ? 'block' : 'none';
-    document.getElementById('src-video').style.display = el.value==='video' ? 'block' : 'none';
-  }
-  else { setK(k, el.value); }
-
-  // live value readout
+  } else { setK(k, el.value); }
   const vid = document.getElementById('val-' + k.replace(/\./g,'_'));
   if (vid) vid.textContent = el.value;
-
-  // toggle custom-colour row when theme changes
   const tm = k.match(/^L(\d+)\.theme$/);
-  if (tm) {
-    const row = panelBody.querySelector(`[data-custom="${tm[1]}"]`);
-    if (row) row.style.display = el.value==='custom' ? 'block' : 'none';
-  }
-  // layer enable dims the header
+  if (tm) { const row = panelBody.querySelector(`[data-custom="${tm[1]}"]`); if (row) row.style.display = el.value==='custom' ? 'block' : 'none'; }
   const em = k.match(/^L(\d+)\.en$/);
-  if (em) {
-    const head = panelBody.querySelector(`[data-toggle="${em[1]}"]`);
-    if (head) head.classList.toggle('off', !el.checked);
-  }
-  // trail toggle dims the length slider
-  if (k === 'trail.on') {
-    const w = document.getElementById('trail-amt-wrap');
-    if (w) w.style.opacity = el.checked ? '1' : '.4';
-  }
+  if (em) { const head = panelBody.querySelector(`[data-toggle="${em[1]}"]`); if (head) head.classList.toggle('off', !el.checked); }
+  if (k === 'trail.on') { const w = document.getElementById('trail-amt-wrap'); if (w) w.style.opacity = el.checked ? '1' : '.4'; }
 });
 
-/* — clicks: reseed, mode chips, layer collapse — */
 panelBody.addEventListener('click', e => {
-  if (e.target.id === 'life-reseed') { lifeReseed = true; return; }
   const chip = e.target.closest('.chip');
   if (chip) {
     const i = chip.dataset.li, mode = chip.dataset.mode;
-    STATES[curTab].preset.layers[+i].mode = mode;
+    S.preset.layers[+i].mode = mode;
     panelBody.querySelectorAll(`[data-chips="${i}"] .chip`).forEach(c => c.classList.toggle('on', c === chip));
     return;
   }
@@ -1455,26 +1358,11 @@ panelBody.addEventListener('click', e => {
   }
 });
 
-/* — video upload — */
-panelBody.addEventListener('change', e => {
-  const up = e.target.dataset.vidup;
-  if (up === undefined) return;
-  const f = e.target.files[0];
-  if (!f) return;
-  const i = +up;
-  vids[i].src = URL.createObjectURL(f);
-  vids[i].play().catch(()=>{});
-  const st = document.getElementById('vid-status');
-  if (st) st.textContent = 'Loading…';
-  vids[i].addEventListener('loadeddata', () => {
-    const s = document.getElementById('vid-status');
-    if (s && curTab === i) s.textContent = 'Video ready';
-  }, { once:true });
-});
-
-/* init */
+/* ══ Boot ═════════════════════════════════════════════════════════ */
+resize();
+Globe.init();
 buildPanel();
-updateLiveTabUI();
+requestAnimationFrame(frame);
 </script>
 </body>
 </html>

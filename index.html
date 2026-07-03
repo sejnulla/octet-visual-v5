@@ -95,16 +95,15 @@ nav a:hover { color: var(--ink); }
 #section-hero {
   width: 100%;
   max-width: 860px;
-  min-height: calc(74vh - var(--hdr));
-  padding: clamp(48px, 10vh, 120px) 40px 44px;
+  padding: clamp(96px, 26vh, 300px) 40px 0;   /* text sits upper-centre */
+  margin-bottom: 64px;                          /* 64px gap above content */
   text-align: center;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
 }
 /* Hero text container — translucent cream panel; text stays fully opaque */
 #section-hero .hero-inner {
-  background: rgba(245, 241, 234, 0.85);
+  background: rgba(245, 241, 234, 1);
   padding: 44px 48px;
 }
 #section-hero .sec-label { justify-content: center; }
@@ -150,7 +149,7 @@ nav a:hover { color: var(--ink); }
 .hero-heading {
   font-family: var(--jet);
   font-weight: 300;
-  font-size: clamp(40px, 5vw, 68px);
+  font-size: clamp(32px, 3.8vw, 52px);
   line-height: 1.08;
   letter-spacing: -0.025em;
   color: var(--ink);
@@ -689,16 +688,17 @@ function L(id,theme,mode,ps,dn,jt,extra){
 }
 const S = {
   source:'globe',
+  dots:false,                 // draw cells as dots instead of squares
   noise:{ speed:0.35, scale:6, detail:3, contrast:45 },
   globe:{
     spin:0.14, tiltX:16, size:0.82, yOffset:-0.62,
     light:2.4, ambient:0.42, lightAz:135, lightEl:22,
-    texture:'water', bright:1.0, opacity:1.0,
+    texture:'water', bright:1.0, opacity:1.0, invert:false,
     arcCount:14, arcSpeed:0.45, arcSpawn:1.6, arcLen:0.32,
     arcThick:0.9, arcAlt:0.28, arcBright:1.6,
   },
   pointer:{ on:false, size:30, fade:6 },
-  trail:{ on:true, amount:97 },
+  trail:{ on:true, amount:86 },
   preset:{ bgc:'#f5f1ea', td:'28', ts:'73', tm:'209', th:'245', layers:[
     L('d','surface','random-gradient',14,69,0,{en:false}),
     L('s','forest','random-gradient',3,66,0),
@@ -746,6 +746,33 @@ function saveCurrentAsPreset(name){
   const s = { bgc:p.bgc, td:p.td, ts:p.ts, tm:p.tm, th:p.th, trail:{ ...S.trail },
     layers: p.layers.map(l => ({ ...l })) };
   const u = getUserPresets(); u.push({ name, state:s }); saveUserPresets(u);
+}
+
+/* ══ Shareable state via URL hash ═════════════════════════════════
+   Captures the full current look (pixelation preset + trail + dots +
+   globe/arc settings) into a compact base64 payload in the URL hash,
+   so a shared link reproduces exactly what's on screen. Static-host
+   friendly — the hash never reaches the server.                     */
+function currentShareState(){
+  return { v:1, src:S.source, dots:S.dots, trail:{ ...S.trail },
+    globe:{ ...S.globe }, preset:JSON.parse(JSON.stringify(S.preset)) };
+}
+function encodeState(o){ return btoa(encodeURIComponent(JSON.stringify(o))); }
+function decodeState(s){ return JSON.parse(decodeURIComponent(atob(s))); }
+function shareURL(){
+  return location.origin + location.pathname + '#s=' + encodeState(currentShareState());
+}
+function applyShareState(o){
+  if (o.preset) applyPreset({ ...o.preset, trail:o.trail });
+  if (o.trail)  S.trail = { on:!!o.trail.on, amount:+o.trail.amount || 70 };
+  if (o.dots != null) S.dots = !!o.dots;
+  if (o.src) S.source = o.src;
+  if (o.globe) Object.assign(S.globe, o.globe);
+}
+function loadShared(){
+  const m = location.hash.match(/[#&]s=([^&]+)/);
+  if (!m) return;
+  try { applyShareState(decodeState(m[1])); } catch (e) { /* ignore bad payload */ }
 }
 
 /* ══ Canvas + dynamic sizing ══════════════════════════════════════
@@ -901,12 +928,33 @@ const Globe = (() => {
     // if the pool shrank in the GUI, retire extras naturally (no respawn handles it)
   }
 
+  // Build a brightness-inverted copy of a texture's source image once.
+  function invertTexture(img) {
+    const c = document.createElement('canvas');
+    c.width = img.width; c.height = img.height;
+    const x = c.getContext('2d');
+    x.drawImage(img, 0, 0);
+    x.globalCompositeOperation = 'difference';   // 255 - value
+    x.fillStyle = '#fff';
+    x.fillRect(0, 0, c.width, c.height);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }
+
   function applyTexture() {
-    const key = S.globe.texture;
-    if (key === loadedTex) return;
-    loadedTex = key;
-    if (key === 'none') { mat.map = null; mat.color.setScalar(0.85); }
-    else { mat.map = textures[key] || null; mat.color.setScalar(1); }
+    const g = S.globe;
+    const sig = g.texture + (g.invert ? '|inv' : '');
+    if (sig === loadedTex) return;
+    loadedTex = sig;
+    if (g.texture === 'none') {
+      mat.map = null;
+      mat.color.setScalar(g.invert ? 0.12 : 0.85);
+    } else {
+      const key = g.texture + (g.invert ? '_inv' : '');
+      mat.map = textures[key] || textures[g.texture] || null;
+      mat.color.setScalar(1);
+    }
     mat.needsUpdate = true;
   }
 
@@ -931,8 +979,8 @@ const Globe = (() => {
     scene.add(ambient, dirLight);
 
     const loader = new THREE.TextureLoader();
-    loader.load('./media/earth-water.png', t => { t.colorSpace = THREE.SRGBColorSpace; textures.water = t; loadedTex = null; applyTexture(); ready = true; });
-    loader.load('./media/earth-dark.jpg',  t => { t.colorSpace = THREE.SRGBColorSpace; textures.dark  = t; loadedTex = null; applyTexture(); });
+    loader.load('./media/earth-water.png', t => { t.colorSpace = THREE.SRGBColorSpace; textures.water = t; textures.water_inv = invertTexture(t.image); loadedTex = null; applyTexture(); ready = true; });
+    loader.load('./media/earth-dark.jpg',  t => { t.colorSpace = THREE.SRGBColorSpace; textures.dark  = t; textures.dark_inv  = invertTexture(t.image); loadedTex = null; applyTexture(); });
     // usable immediately even before textures arrive
     ready = true;
     resizeGlobe();
@@ -1047,6 +1095,7 @@ function renderFrame(px){
 
   const tDk = +p.td||0, tSh = +p.ts||55, tMi = +p.tm||130, tHi = +p.th||210;
   const bnd = { d:[0,tDk], s:[tDk,tSh], m:[tSh,tMi], h:[tMi,tHi], b:[tHi,256] };
+  const dots = S.dots;
 
   p.layers.forEach(l => {
     if (l.en === false) return;
@@ -1080,12 +1129,16 @@ function renderFrame(px){
         const g = mainCtx.createLinearGradient(rx-cos/2,ry-sin/2,rx+cos/2,ry+sin/2);
         g.addColorStop(0,c1); g.addColorStop(1,c2); mainCtx.fillStyle = g;
       }
-      mainCtx.fillRect(x,y,ps,ps);
+      if (dots) { mainCtx.beginPath(); mainCtx.arc(rx, ry, half, 0, 6.2832); mainCtx.fill(); }
+      else mainCtx.fillRect(x, y, ps, ps);
     });
 
     if (sw > 0 && !l.sg) {
       mainCtx.strokeStyle = sc; mainCtx.lineWidth = sw;
-      active.forEach(({rx,ry}) => mainCtx.strokeRect(rx-ps/2,ry-ps/2,ps,ps));
+      active.forEach(({rx,ry}) => {
+        if (dots) { mainCtx.beginPath(); mainCtx.arc(rx, ry, ps/2, 0, 6.2832); mainCtx.stroke(); }
+        else mainCtx.strokeRect(rx-ps/2, ry-ps/2, ps, ps);
+      });
     }
   });
 }
@@ -1161,6 +1214,9 @@ function buildPanel(){
       <input type="text" id="preset-name" placeholder="Save current as…">
       <button class="mini-btn" id="preset-save">Save</button>
     </div>
+    <div class="prow" style="margin-top:7px">
+      <button class="mini-btn" id="preset-share" style="flex:1">Copy share link</button>
+    </div>
     <div id="preset-msg"></div>
   </div>`;
 
@@ -1182,6 +1238,10 @@ function buildPanel(){
           <option value="dark" ${g.texture==='dark'?'selected':''}>Earth (tonal)</option>
           <option value="none" ${g.texture==='none'?'selected':''}>Plain sphere</option>
         </select></div>
+      <div class="prow" style="justify-content:space-between;margin:2px 0 8px">
+        <span style="font-size:11px">Invert brightness</span>
+        <label class="tog"><input type="checkbox" data-k="globe.invert" ${g.invert?'checked':''}><span class="ts"></span></label>
+      </div>
       ${rangeField('Light intensity','globe.light',g.light,0,2.5,0.05)}
       ${rangeField('Ambient','globe.ambient',g.ambient,0,1,0.02)}
       ${rangeField('Overall brightness','globe.bright',g.bright,0.2,2,0.05)}
@@ -1225,6 +1285,14 @@ function buildPanel(){
     </div>
     <div id="trail-amt-wrap" style="margin-top:8px;${S.trail.on?'':'opacity:.4'}">
       ${rangeField('Trail length','trail.amount',S.trail.amount,0,100,1)}
+    </div>
+  </div>`;
+
+  /* Cell shape */
+  html += `<div class="pblock"><div class="pblock-title">Cell shape</div>
+    <div class="prow" style="justify-content:space-between">
+      <span style="font-size:11px">Round cells (dots)</span>
+      <label class="tog"><input type="checkbox" data-k="dots" ${S.dots?'checked':''}><span class="ts"></span></label>
     </div>
   </div>`;
 
@@ -1305,13 +1373,25 @@ function wirePresetControls(){
     if (!nm) { presetMsg('Enter a name to save'); return; }
     saveCurrentAsPreset(nm); buildPanel(); presetMsg('Saved "' + nm + '"');
   };
+  const shareBtn = document.getElementById('preset-share');
+  if (shareBtn) shareBtn.onclick = () => {
+    const url = shareURL();
+    history.replaceState(null, '', '#s=' + encodeState(currentShareState()));  // reflect in address bar
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => presetMsg('Share link copied ✓'))
+        .catch(() => presetMsg('Link set in address bar'));
+    } else {
+      presetMsg('Link set in address bar');
+    }
+  };
 }
 
 /* — write a value into S given a data-k path — */
 function setK(k, val){
   if (k === 'source') { S.source = val; }
+  else if (k === 'dots') { S.dots = val; }
   else if (k.startsWith('noise.'))   { S.noise[k.slice(6)] = +val; }
-  else if (k.startsWith('globe.'))   { const f = k.slice(6); S.globe[f] = (f === 'texture') ? val : +val; }
+  else if (k.startsWith('globe.'))   { const f = k.slice(6); S.globe[f] = (f === 'texture') ? val : (f === 'invert' ? val : +val); }
   else if (k.startsWith('pointer.')) { const f = k.slice(8); S.pointer[f] = (f === 'on') ? val : +val; }
   else if (k.startsWith('trail.'))   { const f = k.slice(6); S.trail[f] = (f === 'on') ? val : +val; }
   else if (k.startsWith('L')) {
@@ -1361,6 +1441,7 @@ panelBody.addEventListener('click', e => {
 /* ══ Boot ═════════════════════════════════════════════════════════ */
 resize();
 Globe.init();
+loadShared();          // apply a shared preset from the URL hash, if present
 buildPanel();
 requestAnimationFrame(frame);
 </script>
